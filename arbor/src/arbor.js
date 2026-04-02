@@ -1,3 +1,56 @@
+
+// ========== RESEARCH LOGGER ==========
+(function() {
+  var SUPABASE_URL = "https://jycizbiclzyjapmxntya.supabase.co";
+  var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5Y2l6YmljbHp5amFwbXhudHlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNzc3NTUsImV4cCI6MjA5MDY1Mzc1NX0.vKJZudpfFxX2RXIPtiO7IdSIkc1fPbGRcmnuFY18JLc";
+  var studentId = null;
+  var sessionStart = null;
+  var queue = [];
+
+  function sendLog(action, parameters) {
+    if (!studentId) { queue.push({action:action,parameters:parameters}); return; }
+    fetch(SUPABASE_URL+"/rest/v1/logs", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Prefer":"return=minimal"},
+      body:JSON.stringify({student_id:studentId,action:action,timestamp_ms:Date.now()-sessionStart,parameters:parameters||{},raw_data:{}})
+    }).then(function(r){if(r.ok)console.log("[Logger] OK:",action);}).catch(function(e){console.warn("[Logger]",e);});
+  }
+
+  function flushQueue() {
+    var p=queue.slice(); queue=[];
+    p.forEach(function(i){sendLog(i.action,i.parameters);});
+  }
+
+  function showOverlay() {
+    var style=document.createElement("style");
+    style.textContent="#_lo{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:2147483647;font-family:sans-serif;}#_lb{background:#fff;border-radius:12px;padding:32px 36px;width:300px;text-align:center;}#_li{width:100%;box-sizing:border-box;padding:10px;font-size:15px;border:2px solid #ccd;border-radius:8px;margin-bottom:12px;}#_lbt{width:100%;padding:10px;font-size:15px;font-weight:600;color:#fff;background:#4a6fa5;border:none;border-radius:8px;cursor:pointer;}";
+    document.head.appendChild(style);
+    var o=document.createElement("div"); o.id="_lo";
+    o.innerHTML='<div id="_lb"><h2>CODAP Arbor</h2><p>Adınız Soyadınız</p><input id="_li" type="text" placeholder="Adınız Soyadınız" autocomplete="off"/><button id="_lbt">Devam Et</button></div>';
+    document.body.appendChild(o);
+    var inp=document.getElementById("_li"),btn=document.getElementById("_lbt");
+    setTimeout(function(){inp.focus();},100);
+    function submit(){
+      var v=inp.value.trim(); if(!v)return;
+      studentId=v; sessionStart=Date.now();
+      o.remove(); style.remove();
+      sendLog("session_start",{student_id:studentId});
+      flushQueue();
+    }
+    btn.addEventListener("click",submit);
+    inp.addEventListener("keydown",function(e){if(e.key==="Enter")submit();});
+  }
+
+  window.arborLogger={log:sendLog};
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",showOverlay);
+  } else {
+    showOverlay();
+  }
+})();
+// ========== END LOGGER ==========
+
 /**
  * Created by tim on 9/26/16.
 
