@@ -57,7 +57,7 @@
     document.head.appendChild(style);
     var overlay=document.createElement("div");
     overlay.id="_logOverlay";
-    overlay.innerHTML='<div id="_logBox"><h2>Arbor Arastirmasi</h2><p>Luetfen adinizi veya ogrenci numaranizi girin.</p><input id="_logInput" type="text" placeholder="Adiniz / Ogrenci No" autocomplete="off" maxlength="80"/><button id="_logBtn">Devam Et</button><div id="_logErr"></div></div>';
+    overlay.innerHTML='<div id="_logBox"><h2>Arbor Arastirmasi</h2><p>Lütfen adınızı ve soyadınızı girin.</p><input id="_logInput" type="text" placeholder="Adınız Soyadınız" autocomplete="off" maxlength="80"/><button id="_logBtn">Devam Et</button><div id="_logErr"></div></div>';
     document.body.appendChild(overlay);
     var input=document.getElementById("_logInput");
     var btn=document.getElementById("_logBtn");
