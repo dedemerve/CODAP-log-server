@@ -1,3 +1,25 @@
+// ── Ogrenci ID URL parametresinden al ──
+(function() {
+    // Hem kendi URL'den hem de parent window URL'den oku
+    var params = new URLSearchParams(window.location.search);
+    var sid = params.get("studentId");
+    if (!sid) {
+        try {
+            var parentParams = new URLSearchParams(window.parent.location.search);
+            sid = parentParams.get("studentId");
+        } catch(e) {}
+    }
+    if (!sid) {
+        try {
+            var ref = document.referrer;
+            if (ref) sid = new URLSearchParams(ref.split("?")[1] || "").get("studentId");
+        } catch(e) {}
+    }
+    window._arborStudentId = sid || "unknown";
+    window._arborSessionStart = Date.now();
+    console.log("[Arbor] Ogrenci:", window._arborStudentId);
+})();
+
 
 // ========== RESEARCH LOGGER ==========
 (function() {
