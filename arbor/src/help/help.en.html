@@ -1,0 +1,167 @@
+<h1>Instructions!</h1>
+<p>This CODAP plug-in lets you make decision or prediction trees based on the data in the document. Here are the
+  basics:</p>
+<ul>
+  <li>Drag an attribute from CODAP to a node to make it branch. </li>
+  <li>Click on the round "prediction leaves" to assign predictions to your tree.
+  Click again to change the prediction.</li>
+  <li>Click <img height="14" width="14" src="art/configure.png"> to configure the selected node.</li>
+  <li>Stats about your current tree appear below the tree.</li>
+  <li>Deleting: click the trash can <img height="14" width="14" src="art/trash.png"> to remove the
+    <i>children</i> of a node.
+  </li>
+  <li>Drag an attribute to the very top "stripe" of the root node to make it the "dependent variable."</li>
+  <li>Click a node to select it and all its cases (it turns yellow).</li>
+  <li><b>Getting started:</b> If you don't have any tree yet, drag the attribute you want to predict into the blue area on the "tree" tab.
+    That will make a box with the name of the attribute. This is your "root node."</li>
+
+</ul>
+<h2>More details:</h2>
+
+<P>
+  As an example, suppose we want to determine whether you have a disease called Fbola.
+  We have a number of tests and indications to help us.
+</P>
+
+<p>
+  Having Fbola is the <i>dependent variable</i>.
+  We have test, exam, and disease data for a number of people who came
+  to the clinic.
+  Our tree represents a series of questions, such as:
+  Are you coughing?
+  Is your fever over 39 degrees Celsius?
+  Have you ever had the measles?
+  Your design of the tree represents a sequence of questions,
+  each depending on the answers to the previous ones.
+</p>
+<p>
+  After any question, we can decide to stop and choose a prediction (or <i>diagnosis</i>).
+  We will say that our diagnosis is positive (that we think you have Fbola) or negative.
+  The positive and negative diagnoses have green or brown blocks.
+</p>
+<p>
+  Of course, we will not be right every time. There are four possibilities:
+</p>
+<ul>
+  <li>We gave a positive diagnosis and you have the disease (a true positive, TP)</li>
+  <li>We gave a positive diagnosis but you are uninfected (a false positive, FP)</li>
+  <li>We gave a negative diagnosis but you actually have the disease (a false negative, FN)</li>
+  <li>We gave a negative diagnosis and you are uninfected (a true negative, TN)</li>
+</ul>
+<p>
+  We want to arrange the tree to get the best outcome we can.
+</p>
+<h3>Variables (or Attributes) and Tree Nodes</h3>
+<p>
+  The names of all the attributes appear as column headings in your data table
+  or as rows of your case card.
+</p>
+<p>
+  To make the tree branch according to an attribute
+  (which represents <i>asking a question</i> in our example),
+  drag the attribute name from CODAP and drop it on the node you want to branch.
+</p>
+<p>
+  As you will see, every node is either a "branching" node (where you ask a question) or
+  a "terminal" node (where you give a diagnosis or prediction). You can think of the terminal nodes as leaves on the tree.
+  They are labeled + or –. (At the beginning, they start out labeled (?).)
+</p>
+<p>
+  Reverse the sense of a terminal node by clicking on it.
+</p>
+<h3>Dependent Variable</h3>
+<p>
+  Your tree will always have one dependent (outcome) variable.
+  It's the thing you're trying to predict using the other variables.
+  For example, if you have data on people with their sex, income, race, and education,
+  and you want to study what affects income, make <b>income</b> the dependent variable.
+</p>
+<p>
+  The dependent variable also appears at the top of the tree,
+  in the first ("root") node.
+  That node also tells you what counts as "positive" in the tree.
+</p>
+<p>
+  To make a variable dependent (the outcome),
+  drag it to the top, "root" node and drop it on the very top stripe.
+</p>
+
+<h3>Positive and Negative Outcomes</h3>
+<p>Whenever you add an attribute (a variable) to the tree, you make two branches.
+  If you assign outcomes to the two leaves,
+  you will typically have a "leaf" labeled "plus," the other will be "minus."
+  The "+"s represent a "positive" choice, even if it's a negative occurrence.
+  For example, a positive test for a disease may not be what you want,
+  but it leads you to suspect that you actually have the disease.
+</p>
+
+<h3>Configuring Attributes</h3>
+<p>
+  All branchings in the tree are <i>binary</i>.
+  You are always choosing between two options.
+  Your attributes may have more than two values, however.
+  The plugin makes default choices about how the values of your attribute map
+  onto the two choices.
+  You may need to <i>configure</i> the attributes you put in a node.
+</p>
+<p>
+  Click the <img height="14" width="14" src="art/configure.png"> button in a branching node
+  to make its attribute's configuration appear.
+</p>
+<p>
+  Each attribute has a "left" and a "right" value.
+  In general, try to put the more
+  "positive" values (with respect to your dependent variable) on the left.
+  You can decide what the two sides will be labeled using the text boxes.
+  For example, you might decide that <b>income > 50000</b> should be called <b>rich</b>,
+  and everything else is <b>poor</b>.
+</p>
+<ul>
+  <li>
+    For <b>numerical</b> attributes, you can choose an operator and type in a value.
+    That specifies the "cut point" that separates the high from the low values.
+
+  </li>
+  <li>
+    For <b>categorical</b> attributes, you will see buttons for the possible values;
+    click the buttons to move them from left to right or vice versa.
+  </li>
+</ul>
+
+<h3>Two Tree Types</h3>
+<p>
+  In the <b>settings</b> tab, you will find a menu that lets you select between
+  having this be a <em>Classification</em> tree and a <em>Regression</em> tree.
+</p>
+<p>
+  A Classification tree is the traditional decision tree,
+  where the result is a positive or negative prediction or diagnosis.
+  Each node shows the proportion of cases where the attribute you're trying to predict is true.
+</p>
+<p>
+  In a Regression tree, you are predicting the <em>value</em> of the dependent variable.
+  So it makes sense that the dependent variable should be numeric for a regression tree.
+  Nodes will show the mean of the variable for cases in that node,
+  and the bottom "stat" shows the sum of the squares of the deviations
+  from the mean, added up for all terminal nodes, and divided by the original sum of squares.
+  That is, it shows the proportion of variance still unexplained by the tree.
+</p>
+<h3>
+  Interactions with CODAP
+</h3>
+<p>
+  Clicking on a node selects all of the corresponding cases in CODAP.
+</p>
+<p>
+  Pressing <strong>emit data</strong> sends information on the current tree
+  to a separate dataset, called either <strong>Classification Tree Records</strong>
+  or <strong>Regression Tree Records</strong>, depending on the type of tree you're making.
+  Find those tables in the <strong>Tables</strong> menu in the toolbar.
+</p>
+<p>
+  Clicking on one of the records in one of those tables restores the table
+  to what it was when you created that record.
+</p>
+<p>
+  Clicking on a single case in the CODAP data table highlights the "path" to its terminal node.
+</p>

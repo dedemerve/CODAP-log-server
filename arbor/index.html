@@ -1,0 +1,440 @@
+<!--
+==========================================================================
+
+ * Created by tim on 9/26/16.
+ 
+ 
+ ==========================================================================
+ index.html in arbor.
+
+HTML wrapper for ....
+
+    Author:   Tim Erickson
+
+Copyright (c) 2016 by The Concord Consortium, Inc. All rights reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+limitations under the License.
+==========================================================================
+
+-->
+
+<!--
+Global: IMPORT THIS:
+
+    local just this: http://localhost/plugins/arbor/
+    local in local codap :
+        http://localhost/codap/static/dg/en/cert/index.html?di=https://localhost/plugins/arbor
+    local in local codap GERMAN:
+        http://localhost/codap/static/dg/de/cert/index.html?di=https://localhost/plugins/arbor
+
+
+https://codap.concord.org/releases/latest/static/dg/en/cert/index.html#shared=25898  //  breast cancer, not local
+https://codap.concord.org/releases/latest/static/dg/en/cert/index.html#shared=24691  //  problem data set with cars
+https://codap.concord.org/releases/latest/static/dg/en/cert/index.html#shared=24624  //  small NHANES with missings, but LOCAL tree
+https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22505       //  local soccer
+https://localhost/~tim/codap/static/dg/en/cert/index.html#file=googleDrive:0B7REdgmgslRzS0RiOTdSREJwTGs   //     same data, original.
+https://codap.concord.org/releases/latest/static/dg/en/cert/index.html#shared=22505  //  has red card data
+https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS used for developing save state
+-->
+
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Arbor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif&family=JetBrains+Mono:wght@300&family=Roboto+Condensed:wght@300;400;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="../../common/jquery/jquery-ui.min.css">
+    <link rel='stylesheet' type='text/css' href='css/arbor.css'/>
+    <link rel='stylesheet' type='text/css' href='css/confusion-matrix.css'/>
+    <link rel='stylesheet' type='text/css' href='css/mosaic.css'/>
+
+    <!-- These five scripts take care of the communication with CODAP  -->
+    <script src="../../common/src/iframe-phone.js"></script>
+    <script src="../../common/src/codap_helper_newAPI.js"></script>
+    <script src="../../common/src/codapInterface.js"></script>
+    <script src="../../common/src/pluginHelper.js"></script>
+    <script src="../../common/src/pluginLang.js"></script>
+
+    <!--    other common files          -->
+    <script src="../../common/src/snap.svg-min.js"></script>
+    <script src="../../common/src/events.js"></script>
+    <script src="../../common/src/TEEUtils.js"></script>
+    <script src="../../common/jquery/jquery.min.js"></script>
+    <script src="../../common/jquery/jquery-ui.min.js"></script>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+
+    <!--
+        Models and Controllers
+    -->
+    <script src="src/logger.js"></script>
+    <script src="src/arbor.js"></script>
+    <script src="src/arbor-ui.js"></script>
+    <script src="src/arborCODAPConnector.js"></script>
+    <script src="src/arbor.selectionManager.js"></script>
+    <script src="src/focusSplitMgr.js"></script>
+    <script src="src/arbor.newCases.js"></script>
+    <script src="src/AttInTree.js"></script>
+    <script src="src/Analysis.js"></script>
+    <script src="src/ArborTree.js"></script>
+    <script src="src/ArborNode.js"></script>
+    <script src="src/AttributeSplit.js"></script>
+    <script src="src/dropManager.js"></script>
+
+    <script src="src/strings/strings.js"></script>
+
+    <!--
+        Views
+    -->
+    <script src="src/views/Stripe.js"></script>
+    <script src="src/views/Leaf.js"></script>
+    <!--
+        <script src="src/views/CorralView.js"></script>
+        <script src="src/views/CorralAttView.js"></script>
+    -->
+    <script src="src/views/TreePanelView.js"></script>
+    <script src="src/views/NodeZoneView.js"></script>
+    <script src="src/views/NodeBoxView.js"></script>
+    <script src="src/views/DiagnosisView.js"></script>
+    <script src="src/views/mosaicPlot.js"></script>
+
+    <!--
+        Set up JQUERY-UI stuff
+    -->
+    <script>
+        $(function () {
+            $("#tabs").tabs();
+        });
+    </script>
+</head>
+<body>
+
+<div id="tabs">
+    <ul>
+        <li class="arbor-tab"><a id="sTreeTab" href="#tree">Tr</a></li>
+        <li class="arbor-tab" id="tableTab"><a id="sTableTab" href="#table">Ta</a></li>
+        <li class="arbor-tab" id="mosaicTab"><a id="sMosaicTab" href="#mosaic">Mo</a></li>
+        <li class="arbor-tab"><a id="sSettingsTab" href="#settings">Se</a></li>
+        <li class="arbor-tab"><a id="sHelpTab" href="#help">?!?!</a></li>
+    </ul>
+
+    <!--
+        Table tab
+    -->
+    <div id="table">
+        <div id="confusion-matrix" class="noselect">
+            <div id="table-head" class="box">foo-title</div>
+            <div id="truth-head" class="box">truth</div>
+            <div id="truth-positive-head" class="box">sick</div>
+            <div id="truth-negative-head" class="box">well</div>
+            <div id="pred-head" class="box">prediction</div>
+            <div id="pred-positive-head" class="box">sick</div>
+            <div id="pred-negative-head" class="box">well</div>
+            <div id="TP" class="cell correct">30</div>
+            <div id="TN" class="cell correct">40</div>
+            <div id="FP" class="cell incorrect">10</div>
+            <div id="FN" class="cell incorrect">20</div>
+
+            <div id="noPredictionTableHead" class="cell no-pred">pas de predicion</div>
+            <div id="PU" class="cell no-pred">44</div>
+            <div id="NU" class="cell no-pred">66</div>
+        </div>
+
+    </div>
+
+    <!--
+        Mosaic plot tab
+    -->
+
+    <div id="mosaic">
+        <svg id="mosaicPlot">
+        </svg>
+        <div id="mosaicControlDiv" class="hBox">
+            <span id="targetAttributeNameForMosaicLegend"></span>: &nbsp;
+
+            <label id="positiveMosaicLabel" for="positiveMosaicSwatch">foo</label>
+            &nbsp;
+            <div id="positiveMosaicSwatch">
+                <svg id="positiveLegendSVG" height="20" width="20">
+                    <rect id="positiveLegendRect" x="0" y="0" width="16" height="16" fill="black"></rect>
+                </svg>
+            </div>
+            &emsp;
+            <label id="negativeMosaicLabel" for="negativeMosaicSwatch">foo</label>
+            &nbsp;
+            <div id="negativeMosaicSwatch">
+                <svg id="negativeLegendSVG"  height="20" width="20">
+                    <rect id="negativeLegendRect" x="0" y="0" width="16" height="16" fill="black"></rect>
+                </svg>
+            </div>
+        </div>
+        <button class=""
+                id="sMosaicOrientationButton"
+                onclick="mosaic.changeOrientation()">
+            swap
+        </button>
+
+    </div>
+
+
+    <!--
+        Tree tab
+    -->
+    <div id="tree">
+
+        <svg id="treePaper" class="noselect" width="100%" height="300">
+            <rect height="100%" width="100%" fill="dodgerblue"></rect>
+        </svg>
+        <div id="noTreeArea" class="not-drop-target">
+            <p id="noTreeMessage">no tree default text</p>
+        </div>
+
+        <!-- the current number of true positives, etc... -->
+
+        <div class="hBox" id="resultsDisplay">
+            <!--
+                        <span id="resultsText"></span>
+            -->
+        </div>
+
+        <hr>
+        <details id="outputFileControls">
+            <summary id="tableSummaryDataControlDetailTitle"></summary>
+
+            <div class="vBox">
+                <p class="arbor-ui" id="outputTableIntro">These values will appear in the output table to help you
+                    identify the trees.</p>
+                <div class="hBox">
+                    <div class="vBox focusatt">
+                        <label for="focusAttributeNameBox" id="focusAttributeNameBoxLabel">att</label>
+                        <input id="focusAttributeNameBox" type="text">
+                    </div>
+                    <div class="vBox focusatt">
+                        <label for="focusAttributeValueBox" id="focusAttributeValueBoxLabel">val</label>
+                        <div id="focusAttributeValueBox"></div>
+                    </div>
+                </div>
+                <div class="hBox">
+                    <button id="emitDataButton" onclick="arbor.emitTreeData()">emit data</button>
+                </div>
+
+            </div>
+        </details>
+        <hr>
+        <details id="emergencyControls">
+            <summary id="emergencyControlsTitle"></summary>
+            <div class="hBox">
+                <br>
+                <button id="refreshAllButton" onclick="arbor.refreshBaum('all')">refresh everything</button>&nbsp;
+                <button id="refreshDataButton" onclick="arbor.refreshBaum('data')">refresh data</button>
+            </div>
+
+        </details>
+    </div>
+
+
+    <!--
+    Attribute configuration section
+    (not a tab)
+         -->
+
+    <div id="attributeConfigurationSection" visibility="hidden">
+
+        <div class="attributeConfigurationHead">
+            <span id="sConfConfigure"></span> "<span id="splitVariableName"></span>"
+            <button class="attributeConfigurationDoneButton"
+                    id="sConfDoneButton"
+                    onclick="focusSplitMgr.showHideAttributeConfigurationSection()">
+            </button>
+
+        </div>
+
+        <table>
+            <tr>
+                <th class="leftSide" id="sConfLeftHeaderText">Left branch</th>
+                <th class="rightSide" id="sConfRightHeaderText">Right branch</th>
+            </tr>
+            <tr>
+                <td class="leftSide">
+                    <label for="leftLabelText" id="sConfLeftLabelLabel"></label>
+                    <input id="leftLabelText" type="text" onchange="focusSplitMgr.changeAttributeConfiguration()">
+                </td>
+                <td class="rightSide">
+                    <label for="rightLabelText" id="sConfRightLabelLabel"></label>
+                    <input id="rightLabelText" type="text" onchange="focusSplitMgr.changeAttributeConfiguration()">
+                </td>
+            </tr>
+
+            <tr id="continuousAttributeConfiguration">
+                <td class="leftSide">
+                    <div class="vBox">
+                        <div class="hBox">
+                            <span id="continuousAttributeName">Variable</span>
+                            <span>&nbsp;</span>
+                            <select id="operatorMenu" onchange="focusSplitMgr.changeAttributeConfiguration()">
+                                <option value="<"> <</option>
+                                <option value=">"> ></option>
+                                <option value=">="> >=</option>
+                                <option value="<="> <=</option>
+                                <option value="=="> ==</option>
+                            </select>
+                            <span>&nbsp;</span>
+                            <input id="cutpointText" type="number"
+                                   onchange="focusSplitMgr.changeAttributeConfiguration()">
+                        </div>
+                        <span id="numberEntryHint"></span>
+
+                    </div>
+                </td>
+                <td class="rightSide" width="300px">
+                    <span id="continuousAttributeReverseExpression">x ≤ 3</span>
+                </td>
+            </tr>
+
+            <tr id="categoricalAttributeConfiguration">
+                <td class="leftSide">
+                    <div id="leftCategoryButtons"></div>
+                </td>
+                <td class="rightSide">
+                    <div id="rightCategoryButtons"></div>
+                </td>
+            </tr>
+
+        </table>
+
+        <div class="attributeConfigurationFooter">
+            <label for="currentSplitTypeMenu" id="sConfAttributeTypeLabel"></label>
+            <select id="currentSplitTypeMenu" onchange="focusSplitMgr.changeCurrentSplitTypeUsingMenu()">
+                <option value="continuous" id="sConfContinuousOptionText"></option>
+                <option value="categorical" id="sConfCategoricalOptionText"></option>
+            </select>
+            &nbsp;&nbsp;
+            <label for="swapImage" id="sConfSwapLandRLabel"></label>
+            <img id="swapImage" onclick="focusSplitMgr.swapFocusSplit()" src="art/left-right.png" width="22"/>
+        </div>
+
+    </div>
+
+    <!--    Settings/Options tab       -->
+
+    <div id="settings">
+        <div class="baumControlGroup">
+            <button id="changeLanguageButton" type="button" name="Language" onclick="arbor.changeLanguage()">Language
+            </button>
+
+            <!-- <p>If you are Joachim Engel, you might want to change this to " regression.
+    "</p> -->
+            <label for="treeTypeMenu" id="treeTypeLabel">Tree type</label>
+            <select id="treeTypeMenu" onchange="arbor.changeTreeTypeUsingMenu();">
+                <option value="classification" id="classificationMenuItem" selected>classification</option>
+                <option value="regression" id="regressionMenuItem">regression</option>
+            </select>
+
+        </div>
+
+        <!--    control whether we use proportion or percentage, p = 0.6 or (60%) -->
+
+        <div class="baumControlGroup">
+
+            <span id="howDoYouWantToDisplay">How do you want to display...</span>
+            <svg height="22">
+                <circle r="8" cx="20" cy="11" fill="dodgerblue"></circle>
+                <circle r="8" cx="40" cy="11" fill="dodgerblue"></circle>
+                <circle r="8" cx="60" cy="11" fill="dodgerblue"></circle>
+                <circle r="8" cx="80" cy="11" fill="red"></circle>
+                <circle r="8" cx="100" cy="11" fill="red"></circle>
+            </svg>
+            <br>
+            <span id="howManyCasesAreSuccesses">...how many cases are successes?</span>
+            <input id="useOutOfOption" type="radio" name="outOfOrRatio"
+                   value="outOf" onchange="arbor.recordDisplayParams()" checked>
+            <label for="usePercentOption"><span id="threeOfFive">3 of 5</span></label>
+            <input id="useFractionOption" type="radio" name="outOfOrRatio"
+                   value="fraction" onchange="arbor.recordDisplayParams()">
+            <label for="useFractionOption">3/5</label>
+            <input id="useRatioOption" type="radio" name="outOfOrRatio"
+                   value="ratio" onchange="arbor.recordDisplayParams()">
+            <label for="useProportionOption"><span id="threeToTwo">3 : 2</span></label>
+            <br>
+            <span id="theProportionOfSuccesses">...the proportion of "successes"?</span>
+            <input id="usePercentOption" type="radio" name="proportionOrPercentage"
+                   value="percent" onchange="arbor.recordDisplayParams()" checked>
+            <label for="usePercentOption">60%</label>
+            <input id="useProportionOption" type="radio" name="proportionOrPercentage"
+                   value="proportion" onchange="arbor.recordDisplayParams()">
+            <label for="useProportionOption">p = 0.60</label>
+            <input id="omitProportionOption" type="radio" name="proportionOrPercentage"
+                   value="noProportion" onchange="arbor.recordDisplayParams()">
+            <label id="sOmitProportionLabel" for="omitProportionOption">(none)</label>
+        </div>
+
+        <!--
+                automatically open the configuration box?
+                show the "show leaves" control?
+        -->
+        <div class="baumControlGroup">
+            <input type="checkbox" id="autoOpenAttributeSplitOnDrop" onchange="arbor.recordDisplayParams()">
+            <label for="autoOpenAttributeSplitOnDrop" id="sAutoOpenAttributeSplitLabel"></label>
+            <br>
+            <input type="checkbox" id="autoBranchLabels" onchange="arbor.recordDisplayParams()">
+            <label for="autoBranchLabels" id="sAutomaticallyShowSplitPointsInBranchLabelsLabel">never see this!</label>
+        </div>
+
+        <!--
+                <div class="baumControlGroup">
+                    <p> Change these at your peril.</p>
+
+                    <label for="dataContextMenu">Dataset: </label>
+                    <select id="dataContextMenu" onchange="arbor.changeDataContext();"></select>
+                    &lt;!&ndash;
+                    <label for="collectionMenu">Collection: </label>
+                    <select id="collectionMenu" onchange="arbor.changeCollection();"></select>
+                    &ndash;&gt;
+                </div>
+        -->
+
+
+        <div class="baumControlGroup">
+            Credits! Gear icon made by <a href="https://www.flaticon.com/authors/tutsplus" title="TutsPlus">TutsPlus</a>
+            from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+            is licensed (<a href="http://creativecommons.org/licenses/by/3.0/"
+                            title="Creative Commons BY 3.0" target="_blank">CC 3.0</a>) by eeps media
+            <br><br>
+            Thanks to many people, including Joachim Engel, Laura Martignon, Bill Finzer,
+            Joan Heller, Frieda Reichsman,
+            Susanne Podworny, Yannik Fleischer, Thomas Wassong, Michael Schlichtig,
+            and many students in Germany and the USA.
+        </div>
+    </div>
+
+
+    <div id="help">
+        <p>You should never see this! A language-specific help file should be here.</p>
+
+    </div>
+</div>
+
+</body>
+
+<script>
+    window.onload = function () {
+        arbor.initialize();
+    }
+</script>
+</html>
