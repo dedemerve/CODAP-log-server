@@ -83,12 +83,8 @@ const arbor = {
 
         arborLogger.initialize(function(studentId) {
             console.log("[Arbor] Oturum basladi:", studentId);
-            arborLogger.setupCODAPListeners();
         });
 
-        // Arastirma logger
-        arborLogger.initialize();
-        arborLogger.setupCODAPListeners();
 
         focusSplitMgr.showHideAttributeConfigurationSection("hide");
 
