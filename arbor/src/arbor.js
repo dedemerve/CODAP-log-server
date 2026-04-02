@@ -81,6 +81,11 @@ const arbor = {
 
         await codapInterface.init(this.iFrameDescription, null);
 
+        arborLogger.initialize(function(studentId) {
+            console.log("[Arbor] Oturum basladi:", studentId);
+            arborLogger.setupCODAPListeners();
+        });
+
         // Arastirma logger
         arborLogger.initialize();
         arborLogger.setupCODAPListeners();
