@@ -134,9 +134,7 @@ const arbor = {
 
         await codapInterface.init(this.iFrameDescription, null);
 
-        arborLogger.initialize(function(studentId) {
-            console.log("[Arbor] Oturum basladi:", studentId);
-        });
+        // logger initialize kaldirildi
 
 
         focusSplitMgr.showHideAttributeConfigurationSection("hide");
