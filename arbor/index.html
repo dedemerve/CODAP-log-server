@@ -35,7 +35,7 @@ Global: IMPORT THIS:
     local in local codap :
         http://localhost/codap/static/dg/en/cert/index.html?di=https://localhost/plugins/arbor
     local in local codap GERMAN:
-        http://localhost/codap/static/dg/de/cert/index.html?di=https://localhost/plugins/arbor
+        http://localhost/codap/static/dg/de/cert/index.html?di=https://localhost/plugins/arbor?lang=de
 
 
 https://codap.concord.org/releases/latest/static/dg/en/cert/index.html#shared=25898  //  breast cancer, not local
@@ -58,26 +58,30 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif&family=JetBrains+Mono:wght@300&family=Roboto+Condensed:wght@300;400;700&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/eepsmedia/plugins@main/common/jquery/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://codap.xyz/plugins/common/jquery/jquery-ui.min.css">
     <link rel='stylesheet' type='text/css' href='css/arbor.css'/>
     <link rel='stylesheet' type='text/css' href='css/confusion-matrix.css'/>
     <link rel='stylesheet' type='text/css' href='css/mosaic.css'/>
+    <link rel='stylesheet' type='text/css' href='css/doubleTree.css'/>
 
     <!-- These five scripts take care of the communication with CODAP  -->
-    <script src="https://cdn.jsdelivr.net/gh/eepsmedia/plugins@main/common/src/iframe-phone.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/eepsmedia/plugins@main/common/src/codap_helper_newAPI.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/eepsmedia/plugins@main/common/src/codapInterface.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/eepsmedia/plugins@main/common/src/pluginHelper.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/eepsmedia/plugins@main/common/src/pluginLang.js"></script>
+    <script src="https://codap.xyz/plugins/common/src/iframe-phone.js"></script>
+    <script src="https://codap.xyz/plugins/common/src/codap_helper_newAPI.js"></script>
+    <script src="https://codap.xyz/plugins/common/src/codapInterface.js"></script>
+    <script src="https://codap.xyz/plugins/common/src/pluginHelper.js"></script>
+    <script src="https://codap.xyz/plugins/common/src/pluginLang.js"></script>
 
     <!--    other common files          -->
-    <script src="https://cdn.jsdelivr.net/gh/eepsmedia/plugins@main/common/src/snap.svg-min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/eepsmedia/plugins@main/common/src/events.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/eepsmedia/plugins@main/common/src/TEEUtils.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/eepsmedia/plugins@main/common/jquery/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/eepsmedia/plugins@main/common/jquery/jquery-ui.min.js"></script>
+    <script src="https://codap.xyz/plugins/common/src/snap.svg-min.js"></script>
+    <script src="https://codap.xyz/plugins/common/src/events.js"></script>
+    <script src="https://codap.xyz/plugins/common/src/TEEUtils.js"></script>
+    <script src="https://codap.xyz/plugins/common/jquery/jquery.min.js"></script>
+    <script src="https://codap.xyz/plugins/common/jquery/jquery-ui.min.js"></script>
 
+    <script src="frameworks/d3.v7.min.js"></script>
+<!--
     <script src="https://d3js.org/d3.v7.min.js"></script>
+-->
 
 
     <!--
@@ -97,7 +101,7 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
     <script src="src/AttributeSplit.js"></script>
     <script src="src/dropManager.js"></script>
 
-    <script src="src/strings/strings.js"></script>
+    <script src="strings/localize.js"></script>
 
     <!--
         Views
@@ -113,6 +117,7 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
     <script src="src/views/NodeBoxView.js"></script>
     <script src="src/views/DiagnosisView.js"></script>
     <script src="src/views/mosaicPlot.js"></script>
+    <script src="src/views/doubleTreeView.js"></script>
 
     <!--
         Set up JQUERY-UI stuff
@@ -130,6 +135,7 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
         <li class="arbor-tab"><a id="sTreeTab" href="#tree">Tr</a></li>
         <li class="arbor-tab" id="tableTab"><a id="sTableTab" href="#table">Ta</a></li>
         <li class="arbor-tab" id="mosaicTab"><a id="sMosaicTab" href="#mosaic">Mo</a></li>
+        <li class="arbor-tab" id="doubleTab"><a id="sDoubleTab" href="#double">2t</a></li>
         <li class="arbor-tab"><a id="sSettingsTab" href="#settings">Se</a></li>
         <li class="arbor-tab"><a id="sHelpTab" href="#help">?!?!</a></li>
     </ul>
@@ -139,13 +145,13 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
     -->
     <div id="table">
         <div id="confusion-matrix" class="noselect">
-            <div id="table-head" class="box">foo-title</div>
-            <div id="truth-head" class="box">truth</div>
-            <div id="truth-positive-head" class="box">sick</div>
-            <div id="truth-negative-head" class="box">well</div>
-            <div id="pred-head" class="box">prediction</div>
-            <div id="pred-positive-head" class="box">sick</div>
-            <div id="pred-negative-head" class="box">well</div>
+            <div id="tableHead" class="box">foo-title</div>
+            <div id="truthHead" class="box">truth</div>
+            <div id="truthPositiveHead" class="box">sick</div>
+            <div id="truthNegativeHead" class="box">well</div>
+            <div id="predHead" class="box">prediction</div>
+            <div id="predPositiveHead" class="box">sick</div>
+            <div id="predNegativeHead" class="box">well</div>
             <div id="TP" class="cell correct">30</div>
             <div id="TN" class="cell correct">40</div>
             <div id="FP" class="cell incorrect">10</div>
@@ -184,14 +190,32 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
                 </svg>
             </div>
         </div>
-        <button class=""
+        <input type="button" class=""
                 id="sMosaicOrientationButton"
                 onclick="mosaic.changeOrientation()">
-            swap
-        </button>
+        </input>
 
     </div>
 
+    <!--
+        DoubleTree tab
+    -->
+    <div id="double">
+        <svg id="theDoubleTree">
+        </svg>
+
+        <div id = "doubleTreeControlDiv">
+            <span id="netDiagramLabel"></span>
+            <input type="button"
+                   id = "sChangeNetViewButton"
+                    class=""
+                    onclick="doubleTree.changeMode()">
+            </input>
+            <label for="lineTagVisibilityToggle" id = "lineTagVisibilityToggleLabel"></label>
+            <input type="checkbox" id="lineTagVisibilityToggle" class=""
+                   onclick="doubleTree.changeLineTagVisibility()">
+        </div>
+    </div>
 
     <!--
         Tree tab
@@ -205,12 +229,12 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
             <p id="noTreeMessage">no tree default text</p>
         </div>
 
-        <!-- the current number of true positives, etc... -->
-
+        <!--
+        the current number of true positives, etc... displayed as pills
+        these are actually constructed in arbor-ui.js.
+        Also includes the "emit" icon
+        -->
         <div class="hBox" id="resultsDisplay">
-            <!--
-                        <span id="resultsText"></span>
-            -->
         </div>
 
         <hr>
@@ -218,8 +242,6 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
             <summary id="tableSummaryDataControlDetailTitle"></summary>
 
             <div class="vBox">
-                <p class="arbor-ui" id="outputTableIntro">These values will appear in the output table to help you
-                    identify the trees.</p>
                 <div class="hBox">
                     <div class="vBox focusatt">
                         <label for="focusAttributeNameBox" id="focusAttributeNameBoxLabel">att</label>
@@ -230,21 +252,10 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
                         <div id="focusAttributeValueBox"></div>
                     </div>
                 </div>
-                <div class="hBox">
-                    <button id="emitDataButton" onclick="arbor.emitTreeData()">emit data</button>
-                </div>
+                <p class="arbor-ui" id="outputTableIntro">These values will appear in the output table to help you
+                    identify the trees.</p>
 
             </div>
-        </details>
-        <hr>
-        <details id="emergencyControls">
-            <summary id="emergencyControlsTitle"></summary>
-            <div class="hBox">
-                <br>
-                <button id="refreshAllButton" onclick="arbor.refreshBaum('all')">refresh everything</button>&nbsp;
-                <button id="refreshDataButton" onclick="arbor.refreshBaum('data')">refresh data</button>
-            </div>
-
         </details>
     </div>
 
@@ -254,14 +265,16 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
     (not a tab)
          -->
 
-    <div id="attributeConfigurationSection" visibility="hidden">
+    <div id="attributeConfigurationSection" >
 
         <div class="attributeConfigurationHead">
-            <span id="sConfConfigure"></span> "<span id="splitVariableName"></span>"
-            <button class="attributeConfigurationDoneButton"
+            <span id="sConfConfigure"></span>&nbsp;"<span id="splitVariableName"></span>"
+
+            <div class="filler"></div>
+
+            <input type="button" class="attributeConfigurationDoneButton"
                     id="sConfDoneButton"
                     onclick="focusSplitMgr.showHideAttributeConfigurationSection()">
-            </button>
 
         </div>
 
@@ -271,11 +284,11 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
                 <th class="rightSide" id="sConfRightHeaderText">Right branch</th>
             </tr>
             <tr>
-                <td class="leftSide">
+                <td class="leftSide" id="confLeftLabelCell">
                     <label for="leftLabelText" id="sConfLeftLabelLabel"></label>
                     <input id="leftLabelText" type="text" onchange="focusSplitMgr.changeAttributeConfiguration()">
                 </td>
-                <td class="rightSide">
+                <td class="rightSide" id="confRightLabelCell">
                     <label for="rightLabelText" id="sConfRightLabelLabel"></label>
                     <input id="rightLabelText" type="text" onchange="focusSplitMgr.changeAttributeConfiguration()">
                 </td>
@@ -326,7 +339,7 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
             </select>
             &nbsp;&nbsp;
             <label for="swapImage" id="sConfSwapLandRLabel"></label>
-            <img id="swapImage" onclick="focusSplitMgr.swapFocusSplit()" src="art/left-right.png" width="22"/>
+            <img id="swapImage" onclick="focusSplitMgr.swapFocusSplit()" src="art/swap.png" width="22"/>
         </div>
 
     </div>
@@ -335,16 +348,19 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
 
     <div id="settings">
         <div class="baumControlGroup">
-            <button id="changeLanguageButton" type="button" name="Language" onclick="arbor.changeLanguage()">Language
-            </button>
 
             <!-- <p>If you are Joachim Engel, you might want to change this to " regression.
     "</p> -->
             <label for="treeTypeMenu" id="treeTypeLabel">Tree type</label>
-            <select id="treeTypeMenu" onchange="arbor.changeTreeTypeUsingMenu();">
+            <select id="treeTypeMenu" onchange="arbor.setTreeTypeUsingMenu();">
                 <option value="classification" id="classificationMenuItem" selected>classification</option>
                 <option value="regression" id="regressionMenuItem">regression</option>
             </select>
+
+            &emsp;
+
+            <button id="changeLanguageButton" type="button" name="Language" onclick="arbor.changeLanguage()">Language
+            </button>
 
         </div>
 
@@ -396,27 +412,18 @@ https://localhost/~tim/codap/static/dg/en/cert/index.html#shared=22607   ACS use
             <label for="autoBranchLabels" id="sAutomaticallyShowSplitPointsInBranchLabelsLabel">never see this!</label>
         </div>
 
-        <!--
-                <div class="baumControlGroup">
-                    <p> Change these at your peril.</p>
+        <div id="emergencyControls" class="baumControlGroup">
+            <summary id="emergencyControlsTitle"></summary>
+            <div class="hBox">
+                <br>
+                <button id="refreshAllButton" onclick="arbor.refreshBaum('all')">refresh everything</button>&nbsp;
+                <button id="refreshDataButton" onclick="arbor.refreshBaum('data')">refresh data</button>
+            </div>
 
-                    <label for="dataContextMenu">Dataset: </label>
-                    <select id="dataContextMenu" onchange="arbor.changeDataContext();"></select>
-                    &lt;!&ndash;
-                    <label for="collectionMenu">Collection: </label>
-                    <select id="collectionMenu" onchange="arbor.changeCollection();"></select>
-                    &ndash;&gt;
-                </div>
-        -->
-
+        </div>
 
         <div class="baumControlGroup">
-            Credits! Gear icon made by <a href="https://www.flaticon.com/authors/tutsplus" title="TutsPlus">TutsPlus</a>
-            from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
-            is licensed (<a href="http://creativecommons.org/licenses/by/3.0/"
-                            title="Creative Commons BY 3.0" target="_blank">CC 3.0</a>) by eeps media
-            <br><br>
-            Thanks to many people, including Joachim Engel, Laura Martignon, Bill Finzer,
+            Thanks to many people, including Joachim Engel, Karin Binder, Laura Martignon, Bill Finzer,
             Joan Heller, Frieda Reichsman,
             Susanne Podworny, Yannik Fleischer, Thomas Wassong, Michael Schlichtig,
             and many students in Germany and the USA.
