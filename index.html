@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>CODAP Araştırma</title>
+  <title>CODAP Arbor</title>
   <style>
     body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f4f8; }
     .box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; }
@@ -16,7 +16,7 @@
 </head>
 <body>
   <div class="box">
-    <h2>CODAP Araştırmasına Hoş Geldiniz</h2>
+    <h2>Sınıflandırma ve Regresyon Ağacı</h2>
     <p>Lütfen adınızı ve soyadınızı girin.</p>
     <input type="text" id="name" placeholder="Ad Soyad" />
     <button onclick="start()">Başla</button>
@@ -28,7 +28,8 @@
       const runKey = name.toLowerCase().replace(/\s+/g, '_');
       const codapUrl = 'https://codap.concord.org/releases/latest/static/dg/en/cert/index.html'
         + '?logEndpoint=https://codap-log-server.onrender.com/api/logs'
-        + '&runKey=' + encodeURIComponent(runKey);
+        + '&runKey=' + encodeURIComponent(runKey)
+        + '&di=https://codap.xyz/plugins/arbor/';
       window.location.href = codapUrl;
     }
   </script>
