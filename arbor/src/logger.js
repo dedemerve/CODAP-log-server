@@ -4,7 +4,7 @@
 (function () {
   "use strict";
   var SUPABASE_URL = "https://jycizbiclzyjapmxntya.supabase.co";
-  var SUPABASE_KEY = "sb_secret_aknZfuuWplP30OtG5vYF_w_X5Ece8E3";
+  var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5Y2l6YmljbHp5amFwbXhudHlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNzc3NTUsImV4cCI6MjA5MDY1Mzc1NX0.vKJZudpfFxX2RXIPtiO7IdSIkc1fPbGRcmnuFY18JLc";
   var LOG_TABLE = "logs";
   var studentId = null;
   var sessionStart = null;
