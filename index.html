@@ -58,14 +58,12 @@
     }).then(function() {
       // CODAP'i orijinal Arbor ile ac, ogrenci adi URL parametresi olarak
       var codapUrl = 'https://codap.concord.org/app/static/dg/en/cert/index.html' +
-        '?di=https://dedemerve.github.io/CODAP-log-server/arbor/index.html' +
-        '&studentId=' + encodeURIComponent(name);
+        '?di=' + encodeURIComponent('https://dedemerve.github.io/CODAP-log-server/arbor/index.html?studentId=' + name);
       window.location.href = codapUrl;
     }).catch(function() {
       // Hata olsa bile devam et
       var codapUrl = 'https://codap.concord.org/app/static/dg/en/cert/index.html' +
-        '?di=https://dedemerve.github.io/CODAP-log-server/arbor/index.html' +
-        '&studentId=' + encodeURIComponent(name);
+        '?di=' + encodeURIComponent('https://dedemerve.github.io/CODAP-log-server/arbor/index.html?studentId=' + name);
       window.location.href = codapUrl;
     });
   }
