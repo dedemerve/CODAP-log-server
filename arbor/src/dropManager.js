@@ -1,3 +1,25 @@
+
+function arborSendLog(action, parameters) {
+    var sid = window._arborStudentId || "unknown";
+    var start = window._arborSessionStart || Date.now();
+    fetch("https://jycizbiclzyjapmxntya.supabase.co/rest/v1/logs", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5Y2l6YmljbHp5amFwbXhudHlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNzc3NTUsImV4cCI6MjA5MDY1Mzc1NX0.vKJZudpfFxX2RXIPtiO7IdSIkc1fPbGRcmnuFY18JLc",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5Y2l6YmljbHp5amFwbXhudHlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNzc3NTUsImV4cCI6MjA5MDY1Mzc1NX0.vKJZudpfFxX2RXIPtiO7IdSIkc1fPbGRcmnuFY18JLc",
+            "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+            student_id: sid,
+            action: action,
+            timestamp_ms: Date.now() - start,
+            parameters: parameters || {},
+            raw_data: {}
+        })
+    }).catch(function(e){ console.warn("[Log]", e); });
+}
+
 arbor.dropManager = {
 
     highlightedNBV: null,
@@ -32,6 +54,12 @@ arbor.dropManager = {
 
             case "drop":        //  attribute drop using API dragdrop
                 console.log(`Dropped [${iMessage.values.attribute.title}] from CODAP`);
+                arborSendLog("drop_attribute", {
+                    attribute: iMessage.values.attribute.name,
+                    context: iMessage.values.context ? iMessage.values.context.name : "",
+                    position_x: iMessage.values.position ? iMessage.values.position.x : 0,
+                    position_y: iMessage.values.position ? iMessage.values.position.y : 0
+                });
                 const theDropDatasetName = iMessage.values.context.name;
 
                 if (theDropDatasetName === arbor.state.dataSetName) {
