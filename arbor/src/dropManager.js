@@ -1,25 +1,3 @@
-
-function arborSendLog(action, parameters) {
-    var sid = window._arborStudentId || "unknown";
-    var start = window._arborSessionStart || Date.now();
-    fetch("https://jycizbiclzyjapmxntya.supabase.co/rest/v1/logs", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5Y2l6YmljbHp5amFwbXhudHlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNzc3NTUsImV4cCI6MjA5MDY1Mzc1NX0.vKJZudpfFxX2RXIPtiO7IdSIkc1fPbGRcmnuFY18JLc",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5Y2l6YmljbHp5amFwbXhudHlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNzc3NTUsImV4cCI6MjA5MDY1Mzc1NX0.vKJZudpfFxX2RXIPtiO7IdSIkc1fPbGRcmnuFY18JLc",
-            "Prefer": "return=minimal"
-        },
-        body: JSON.stringify({
-            student_id: sid,
-            action: action,
-            timestamp_ms: Date.now() - start,
-            parameters: parameters || {},
-            raw_data: {}
-        })
-    }).catch(function(e){ console.warn("[Log]", e); });
-}
-
 arbor.dropManager = {
 
     highlightedNBV: null,
@@ -53,22 +31,23 @@ arbor.dropManager = {
                 break;
 
             case "drop":        //  attribute drop using API dragdrop
-                console.log(`Dropped [${iMessage.values.attribute.title}] from CODAP`);
-                arborSendLog("drop_attribute", {
-                    attribute: iMessage.values.attribute.name,
+                if (window.arborSendLog) arborSendLog("drop_attribute", {
+                    attribute: iMessage.values.attribute ? iMessage.values.attribute.name : "",
                     context: iMessage.values.context ? iMessage.values.context.name : "",
                     position_x: iMessage.values.position ? iMessage.values.position.x : 0,
                     position_y: iMessage.values.position ? iMessage.values.position.y : 0
                 });
+                console.log(`Dropped [${iMessage.values.attribute.title}] from CODAP`);
                 const theDropDatasetName = iMessage.values.context.name;
 
                 if (theDropDatasetName === arbor.state.dataSetName) {
                     arbor.dropManager.copeWithAttributeDrop(iMessage.values.attribute.name, iMessage.values.position);
                 } else {    //  different data context, do the change!
-                    console.log(`changing to dataset ${theDropDatasetName}`);
+                    console.log(`changing to dataset [${theDropDatasetName}]`);
                     await arbor.setDataContext(theDropDatasetName);           //      change DC and make a new empty analysis
+                    arbor.state.dependentVariableName = iMessage.values.attribute.name; //  fix wrong-attribute bug 2025-06-26
                     await arbor.getAndRestoreModel();
-                    arbor.setDependentVariableByName(iMessage.values.attribute.name);
+                    await arbor.setDependentVariableByName(iMessage.values.attribute.name);
                     arbor.redisplay();
                 }
                 break;

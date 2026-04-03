@@ -170,11 +170,12 @@ NodeZoneView.prototype.redrawEntireZone = function () {  //  object with x, y
 
             break;
 
-        case 0:     //  it's a leaf! update and position the leaf
+        case 0:     //  it's a leaf! updateBoxData and position the leaf
             tCurrentY += arbor.constants.treeObjectPadding;     //  top of leaf
-            this.leaf = new Leaf({node: this.myNode});          //  our leaf
+//            this.leaf = new Leaf({node: this.myNode});          //  our leaf
 
-            if (arbor.state.treeType === 'classification') {     //  (arbor.state.oShowDiagnosisLeaves) {
+            if (arbor.state.treeType === arbor.constants.kClassTreeType) {     //  (arbor.state.oShowDiagnosisLeaves) {
+                this.leaf = new Leaf({node: this.myNode});          //  our leaf
                 this.paper.append(this.leaf.paper);
                 const tLeafDimensions = this.leaf.refreshLeaf();
 

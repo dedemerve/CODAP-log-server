@@ -43,8 +43,11 @@ Tree = function () {
     this.trunkNode = new Node(this.rootNode, "trunk");
 };
 
+/*
+"Populate" the tree, finding the set of cases for its root node, which recursively processes its children.
+ */
 Tree.prototype.populateTree = function () {
-    this.rootNode.populateNode();
+    this.rootNode.populateNode();   //  populate the root node. It will recursively populaute its descendants
 };
 
 Tree.prototype.traceCaseInTree = function (iValues) {
@@ -64,7 +67,7 @@ Tree.prototype.depth = function() {
 };
 
 Tree.prototype.numberOfNodes = function() {
-  return this.rootNode.descendantCount() + 1;
+  return this.rootNode.descendantCount();
 };
 
 /*

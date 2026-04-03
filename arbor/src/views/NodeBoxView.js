@@ -42,12 +42,14 @@ NodeBoxView = function (iNode, iZoneView) {
 
     this.stripes = [];  //  the box is made up of a variable number of "Stripes"
 
-    //  the tool tip
+    //  the tool tip (actually done later, OK to comment out??)
+/*
     try {
-        this.paper.append(Snap.parse("<title>" + this.myNode.longDescription() + "</title>"));
+        this.paper.append(Snap.parse("<title>" + this.myNode.toolTipText() + "</title>"));
     } catch (msg) {
         console.log(`problem with setting the node tool tip: ${msg}`);
     }
+*/
 
     //  mousedown handler
 
@@ -186,7 +188,7 @@ NodeBoxView.prototype.drawNodeBoxView = function () {
     this.stripes = [];  //  fresh set of stripes
 
     //  The tool tip for the box itself
-    this.paper.append(Snap.parse("<title>" + this.myNode.longDescription() + "</title>"));
+    this.paper.append(Snap.parse("<title>" + this.myNode.toolTipText() + "</title>"));
 
     //  various useful constants
 
@@ -206,7 +208,7 @@ NodeBoxView.prototype.drawNodeBoxView = function () {
 
         if (tNoCases) {
             const tStripe = new Stripe(this, {
-                text: arbor.strings.sNoCases,
+                text: localize.getString("sNoCases"),
                 textColor: "#696",
                 bgColor: tDataBackgroundColor
             }, null);
@@ -230,7 +232,7 @@ NodeBoxView.prototype.drawNodeBoxView = function () {
         }
     }
 
-    this.adjustPaperSize();   //  update this.paper's dimensions based on the new text in stripes
+    this.adjustPaperSize();   //  updateBoxData this.paper's dimensions based on the new text in stripes
 
     const tArgs = {
         height: this.kStripeHeight,
@@ -262,9 +264,9 @@ NodeBoxView.prototype.makeRootStripes = function () {
     let tText;
 
     if (arbor.state.treeType === arbor.constants.kClassTreeType) {
-        tText = `${arbor.strings.sPredict} ${arbor.state.dependentVariableSplit.attName}`;
+        tText = `${localize.getString("sPredict")} ${arbor.state.dependentVariableSplit.attName}`;
     } else {
-        tText = `${arbor.strings.sPredict} ${arbor.constants.kMu}(${arbor.state.dependentVariableSplit.attName})`;
+        tText = `${localize.getString("sPredict")} ${arbor.constants.kMu}(${arbor.state.dependentVariableSplit.attName})`;
     }
 
     const tStripe = new Stripe(
@@ -275,7 +277,7 @@ NodeBoxView.prototype.makeRootStripes = function () {
     this.stripes.push(tStripe);
 
     if (arbor.state.treeType === arbor.constants.kClassTreeType) {
-        tText = `${arbor.strings.sPositive}: ${arbor.state.dependentVariableSplit.attName} ${arbor.strings.sfIsAre(1)} ${arbor.state.dependentVariableSplit.leftLabel}`
+        tText = `${localize.getString("sPositive")}: ${arbor.state.dependentVariableSplit.attName} ${localize.getString("sIs")} ${arbor.state.dependentVariableSplit.leftLabel}`
         const uStripe = new Stripe(
             this,
             {text: tText, textColor: "white", bgColor: arbor.state.dependentVariableSplit.attColor},
@@ -296,10 +298,10 @@ NodeBoxView.prototype.makeAndAddClassificationDataStripes = function (iColors) {
     let tCountText = `tCount foo`;
     switch (arbor.state.oNodeDisplayNumber) {
         case arbor.constants.kUseOutOfInNodeBox:
-            tCountText = `${this.myNode.numerator} ${arbor.strings.sOf} ${this.myNode.denominator}`;
+            tCountText = `${this.myNode.numerator} ${localize.getString("sOf")} ${this.myNode.denominator}`;
             break;
         case arbor.constants.kUseRatioInNodeBox:
-            tCountText = `${this.myNode.numerator} ${arbor.strings.sTo} ${this.myNode.denominator - this.myNode.numerator}`;
+            tCountText = `${this.myNode.numerator} ${localize.getString("sTo")} ${this.myNode.denominator - this.myNode.numerator}`;
             break;
         case arbor.constants.kUseFractionInNodeBox:
             tCountText = `${this.myNode.numerator}/${this.myNode.denominator}`;
@@ -395,7 +397,7 @@ NodeBoxView.prototype.makeBranchingStripe = function () {
     const tStripe = new Stripe(
         this,
         {
-            text: this.myNode.attributeSplit.attName + "...?",
+            text: this.myNode.attributeSplit.attName,
             textColor: "white",
             bgColor: this.myNode.attributeSplit.attColor
         },

@@ -43,6 +43,10 @@ Node = function (iParent, iLoR) {
     this.numerator = 0;
     this.denominator = 0;
     this.mean = 0;          //  mean value; if categorical, proportion positive (pos = 1, neg = 0)
+    /**
+     *  The sum of squares of deviations from the (local) mean for cases in this node and all its descendants
+     * @type {number}
+     */
     this.ssdev = 0;       //  mean squared deviation from that mean. If categorical, use  (pos = 1, neg = 0) = p(1-p)/n
 
     //  label texts
@@ -196,43 +200,73 @@ Node.prototype.clearTrace = function () {
     })
 };
 
-
+/**
+ * calcuate
+ *
+ * *  `this.mean`, which is the mean value of all cases; if this is
+ * a categorical tree, because we code teh values as 1 or 0, it's the proportion of positives.
+ * *  `this.ssdev`, which is the sum of squares of deviations.
+ *
+ *   Called from `populateNode()`
+ */
 Node.prototype.findNodeStats = function () {
 
+    //  get all of "my" cases
     const tCases = arbor.state.tree.casesByFilter(this.filterArray, this.missingArray);
     const N = tCases.length;
 
-    const theSplit = arbor.state.dependentVariableSplit;
+    const theRootSplit = arbor.state.dependentVariableSplit;
 
-    if (theSplit) {
+    if (theRootSplit) {
 
         const filter = arbor.state.dependentVariableSplit.oneBoolean;
-        this.numerator = this.numberOfCasesWhere(tCases, filter);
+        this.numerator = this.numberOfCasesWhere(tCases, filter);       //  as a numerator, use the filter governed by the rootSplit.
         this.denominator = N;
 
+        //  now we know how many cases out of how many are xxxx
+
         let sum = 0;
-        const tDependentVarName = theSplit.attName;     //  dependent variable name
+        const tDependentVarName = theRootSplit.attName;     //  dependent variable name
 
         tCases.forEach(function (aCase) {
             const c = aCase.values;
-            if (theSplit.isCategorical) {
-                sum += eval(filter) ? 1 : 0;
+            if (theRootSplit.isCategorical) {
+                sum += eval(filter) ? 1 : 0;            //  it's categorical! We're just counting the cases that go left.
             } else {
-                sum += Number(c[tDependentVarName]);    //  because it might be encoded as a string
+                sum += Number(c[tDependentVarName]);    //  add the numerical value; Number() because it might be encoded as a string
             }
         }.bind(this));
 
-        this.mean = sum / N;
+        const theMean = sum / N;
 
         let sse = 0;
 
+        /*
+        Now we process the total errors based on the mean.
+        If it was categorical, that mean is between 0 and 1, so the residuals are, like, 0.4.
+        If it is numeric (and therefore the tree is a regression tree?) (todo: verify) we have just calculated the mean of
+        all cases in this node and can calculate the sum of squares of the residuals from that mean value.
+         */
         tCases.forEach(function (aCase) {
             const c = aCase.values;
-            const val = theSplit.isCategorical ? (eval(filter) ? 1 : 0) : c[tDependentVarName];
-            sse += (val - sum / N) * (val - sum / N);       //      (value - mean)**2
+            const val = theRootSplit.isCategorical ? (eval(filter) ? 1 : 0) : c[tDependentVarName];
+            sse += (val - theMean) * (val - theMean);       //      (value - mean)**2
         });
 
+        this.mean = theMean;
         this.ssdev = sse;
+        console.log(`Node with ${N} cases has ssdev = ${this.ssdev} [${arbor.state.treeType}]`);
+
+        if (this.branches.length === 1) {   //  root only
+            this.SSTotal = sse;
+            this.SSModel = this.branches[0].SSModel
+        } else if (this.branches.length === 2) {
+            this.SSModel = this.branches[0].SSModel + this.branches[1].SSModel;
+            this.SSTotal = sse;     //  only need it for the root
+        } else {    //  0 branches, a trunk with nothing added
+            this.SSTotal = sse;
+            this.SSModel = sse;     //  no model, pass the full value
+        }
 
     } else {
         console.log("calculating findNodeStats without split");
@@ -254,7 +288,7 @@ Node.prototype.populateNode = function () {
 
     switch (this.LoR) {
         case "trunk":
-            this.relevantParentSplitLabel = arbor.strings.sAllCases;
+            this.relevantParentSplitLabel = localize.getString("sAllCases");
             this.filterArray = ["true"];
             //  note, no change in filter array. Still empty.
             break;
@@ -277,10 +311,12 @@ Node.prototype.populateNode = function () {
             break;
     }
 
+    //  this is the recursive step! Populate all subnodes.
     this.branches.forEach(function (b) {
         b.populateNode();
     });
 
+    //  now get the stats for this node. This involves processing all cases
     this.findNodeStats();
 
     arbor.eventDispatcher.dispatchEvent("changeNode");
@@ -375,8 +411,16 @@ Node.prototype.getResultCounts = function () {
 
     tOut.sampleSize = this.denominator;
 
-    if (arbor.state.tree.rootNode.ssdev) {
-        tOut.ssdFraction = this.ssdev / arbor.state.tree.rootNode.ssdev;
+    if (arbor.state.tree.rootNode.ssdev) {  //  if the denominator is not zero....
+        const unexplainedFraction = this.SSModel / this.SSTotal;
+        tOut.SSModel = this.SSModel;
+        tOut.SSTotal = this.SSTotal;
+        tOut.explainedPercentage = (100 * (1 - unexplainedFraction)).newFixed(1);
+    } else {
+        tOut.SSModel = 0;
+        tOut.SSTotal = 0;
+        tOut.explainedPercentage = 0;
+        console.log(`zero denominator alert in ArborNode`);
     }
 
     if (this.branches.length === 0) {       //  terminal node
@@ -459,14 +503,14 @@ Node.prototype.toString = function () {
 
 Node.prototype.friendlySubsetDescription = function () {
     let out = "";
-    const tAllCasesText = arbor.strings.sAllCasesText;
+    const tAllCasesText = localize.getString("sAllCasesText");
     const tParent = this.parentNode();
     if (this.LoR !== "root" && this.LoR !== "trunk") {
         const tDesc = tParent.friendlySubsetDescription();
 
         const tNewLabel = (this.LoR === "L") ?
-            `${tParent.attributeSplit.attName} ${arbor.strings.sfIsAre(1)} ${tParent.attributeSplit.leftLabel}` :
-            `${tParent.attributeSplit.attName} ${arbor.strings.sfIsAre(1)} ${tParent.attributeSplit.rightLabel}`;
+            `${tParent.attributeSplit.attName} ${localize.getString("sIs")} ${tParent.attributeSplit.leftLabel}` :
+            `${tParent.attributeSplit.attName} ${localize.getString("sIs")} ${tParent.attributeSplit.rightLabel}`;
 
         if (tDesc === tAllCasesText) {
             out = tNewLabel;
@@ -480,28 +524,67 @@ Node.prototype.friendlySubsetDescription = function () {
     return out;
 };
 
-Node.prototype.longDescription = function () {
+
+Node.prototype.toolTipText = function () {
+    const gotAll = (this.LoR === "root" || this.LoR === "trunk");
+    const sAll = gotAll ? localize.getString("sAll") : "";
+
+    //  if it's all cases, this is nothing. If it's a subset, this is like
+    //  These are all cases where (Sex = "Female") and (income > 50000)
+    const sBooleanIdentity = gotAll ?
+        "" :
+        `${localize.getString("sAllCasesWhere")} (${this.friendlySubsetDescription()}).`;
+
+    const theRest = this.denominator - this.numerator;
+
+    //  either case or cases, depending
+    const caseString = localize.getString(this.denominator === 1 ? "case" : "cases");
+
+    //  so that we will say one case is, but 10 cases are
+    const numeratorIsAre = this.numerator === 1 ? localize.getString("sIs") : localize.getString("sAre");
+    const restIsAre = theRest === 1 ? localize.getString("sIs") : localize.getString("sAre");
+
+    // This node represents all 177 cases. These are all cases where Sex = "Female"
+    //  this is good for both types of tree
+    const nodeCasesDescriptionStart = localize.getString("sNodeCasesDescriptionStart",
+        sAll, this.denominator, caseString, sBooleanIdentity
+    );
+
+    //  Of these, 77 are (old) the other 100 are (young).  [only used for classification trees]
+    const nodeCasesOfTheseString = localize.getString("sNodeCasesOfTheseDescription",
+        this.numerator, numeratorIsAre, arbor.informalDVBoolean,
+        theRest, restIsAre, arbor.informalDVBooleanReversed
+    )
 
     let out = "";
-    switch(this.LoR) {
+    switch (this.LoR) {
         case "root":
-            out += arbor.strings.sfPositiveNegativeNodeDescription();
+            if (arbor.state.treeType === arbor.constants.kClassTreeType) {
+                //  in this scenario, we call (health = sick) 'positive' and (health = well) 'negative'
+                out += localize.getString("sPositiveNegativeNodeDescription",
+                    arbor.informalDVBoolean, arbor.informalDVBooleanReversed);
+            } else {
+                //  in this scenario, we are estimating the mean of income
+                out += localize.getString("sRegressionRootNodeDescription", arbor.state.dependentVariableName);
+            }
             break;
         case "trunk":
-            out += arbor.strings.sfNodeCasesDescription(this);
-            break;
         case "L":
-            out += arbor.strings.sfNodeCasesDescription(this);
-            break;
         case "R":
-            out += arbor.strings.sfNodeCasesDescription(this);
+            out += `${nodeCasesDescriptionStart} ${(arbor.state.treeType === arbor.constants.kClassTreeType) ? 
+                nodeCasesOfTheseString : 
+                ""}`;
             break;
     }
 
+    if (arbor.state.treeType === arbor.constants.kRegressTreeType && this.LoR !== "root") {
+        //  For these cases, the mean of height is 158.2
+        out += localize.getString("sRegressionNodeMeanDescription",
+            arbor.state.dependentVariableName, this.mean.newFixed(4), this.SSModel.newFixed(3));
+    }
+
     if (this.attributeSplit && this.LoR !== "root") {
-        out +=
-`&mdash;&mdash;
-${arbor.strings.sThenWeAskAbout} ${this.attributeSplit.attName}`;
+        out += `\n&mdash;&mdash;\n${localize.getString("sThenWeAskAbout")} ${this.attributeSplit.attName}`;
     }
 
     return out;

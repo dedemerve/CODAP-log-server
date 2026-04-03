@@ -124,7 +124,7 @@ AttributeSplit.prototype.makeInitialSplitParameters = function( ) {
     if (this.isCategorical) {
         this.leftCategories[0] = this.categories[0];
         this.leftLabel = this.categories[0];
-        this.rightLabel = (this.categories.length === 2) ? this.categories[1] : arbor.strings.sOthers;
+        this.rightLabel = (this.categories.length === 2) ? this.categories[1] : localize.getString("sOthers");
         this.oneBoolean = this.constructCategoricalFilter("L");
     } else {
         const spread = tAtt.maximum - tAtt.minimum;
@@ -228,17 +228,17 @@ AttributeSplit.prototype.branchDescription = function( iLorR ) {
         var theCategories = this.getListOfCategories(iLorR);
         switch (theCategories.length) {
             case 0:
-                out = arbor.strings.sNoCategories;
+                out = localize.getString("sNoCategories");
                 break;
             case 1:
-                out = `${this.attName} ${arbor.strings.sIs} ${theCategories[0]}`;
+                out = `${this.attName} ${localize.getString("sIs")} ${theCategories[0]}`;
                 break;
             case 2:
-                out = `${this.attName} ${arbor.strings.sIs} ${theCategories[0]} ${arbor.strings.sOr} ${theCategories[1]}`;
+                out = `${this.attName} ${localize.getString("sIs")} ${theCategories[0]} ${localize.getString("sOr")} ${theCategories[1]}`;
                 break;
             default:
-                out = `${this.attName} ${arbor.strings.sIs} ${theCategories[0]} 
-                ${arbor.strings.sOr} ${theCategories.length - 1} ${arbor.strings.sMoreCategories}`;
+                out = `${this.attName} ${localize.getString("sIs")} ${theCategories[0]} 
+                ${localize.getString("sOr")} ${theCategories.length - 1} ${localize.getString("sMoreCategories")}.`;
                 break;
         }
     } else {    //  must be numerical/continuous
@@ -250,7 +250,7 @@ AttributeSplit.prototype.branchDescription = function( iLorR ) {
                 out = this.attName +  " " + AttributeSplit.operatorOpposites[this.operator] +  " " + this.cutpoint;
                 break;
             case "trunk":
-                out = `all cases`
+                out = localize.getString('sAllCases');
                 break;
             default:
                 alert('LorR is ' + iLorR + " in AttributeSplit.branchDescription()");

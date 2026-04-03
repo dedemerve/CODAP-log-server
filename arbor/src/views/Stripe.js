@@ -25,7 +25,8 @@ Stripe = function (iParent, iTextParams, iRole) {
         this.paper.circle(0, 0, 40).attr({fill: this.sBGColor}) :
         this.paper.rect(0, 0, 40, 40).attr({fill: this.sBGColor});
 
-    this.sLabel = this.paper.text(arbor.constants.treeObjectPadding, 15.5, this.sText)
+    const theNodeLabel = (iRole === "branching") ? this.sText + "...?" : this.sText;
+    this.sLabel = this.paper.text(arbor.constants.treeObjectPadding, 15.5, theNodeLabel)
         .attr({
             fill: this.sTextColor,
             pointerEvents : "none",     //  so clicks go through
@@ -36,12 +37,16 @@ Stripe = function (iParent, iTextParams, iRole) {
     this.leftButtonImage = null;
     this.rightButtonImage = null;
 
-    const toolTipTexts = arbor.strings.sfGetStripeToolTipText(this);
+    //  const toolTipTexts = arbor.strings.sfGetStripeToolTipText(this);
+    let tVariableName = "";
+    if (this.parent.myNode.attributeSplit) {
+        tVariableName = this.parent.myNode.attributeSplit.attName;
+    }
 
     switch (this.role) {
         case "terminal":
             this.leftButtonImage = this.paper.image(arbor.constants.buttonImageFilenames.plusMinus, 0, 0, 30, 30)
-                .append(Snap.parse("<title>" + toolTipTexts.plusMinus + "</title>"))
+                .append(Snap.parse(`<title>${localize.getString("stripeToolTips.plusMinus")}</title>`))
                 .mousedown(
                     function (iEvent) {
                         this.parent.myNode.flipStopType();
@@ -57,10 +62,10 @@ Stripe = function (iParent, iTextParams, iRole) {
             this.rightButtonImage = null;
             break;
 
-        case "branching":
+        case "branching":   //  so we have both gear and trash icons
 
             this.leftButtonImage = this.paper.image(arbor.constants.buttonImageFilenames.configure, 0, 0, 30, 30)
-                .append(Snap.parse("<title>" + toolTipTexts.configure + "</title>"))
+                .append(Snap.parse(`<title>${localize.getString("stripeToolTips.configure", tVariableName)}</title>`))
                 .mousedown(
                     function (iEvent) {
                         arbor.setFocusNode(this.parent.myNode);
@@ -68,8 +73,9 @@ Stripe = function (iParent, iTextParams, iRole) {
                     }.bind(this)
                 );
 
+            const variableNameDisplay = `"${this.sText}"`;
             this.rightButtonImage = this.paper.image(arbor.constants.buttonImageFilenames.trash, 0, 0, 30, 26)
-                .append(Snap.parse("<title>" + toolTipTexts.trash + "</title>"))
+                .append(Snap.parse(`<title>${localize.getString("stripeToolTips.trash", variableNameDisplay)}</title>`))
                 .mousedown(
                     function (iEvent) {
                         this.parent.myNode.stubThisNode();              //  actually do the trash
@@ -82,7 +88,7 @@ Stripe = function (iParent, iTextParams, iRole) {
             this.rightButtonImage = null;
 
             this.leftButtonImage = this.paper.image(arbor.constants.buttonImageFilenames.configure, 0, 0, 30, 30)
-                .append(Snap.parse("<title>" + toolTipTexts.configure + "</title>"))
+                .append(Snap.parse(`<title>${localize.getString("stripeToolTips.configure", tVariableName)}</title>`))
                 .mousedown(
                     function (iEvent) {
                         arbor.setFocusNode(this.parent.myNode);

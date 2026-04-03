@@ -41,13 +41,6 @@ const focusSplitMgr = {
     setFocusSplit: function (iSplit) {
         this.theSplit = iSplit;
 
-        //  set visibility of relevant DOM elements in the configuration section
-
-        const el_cont = document.getElementById("continuousAttributeConfiguration");
-        const el_cate = document.getElementById("categoricalAttributeConfiguration");
-        el_cont.style.display = (this.theSplit.isCategorical) ? "none" : "table-row";
-        el_cate.style.display = (this.theSplit.isCategorical) ? "table-row" : "none";
-
         this.displayAttributeConfiguration();
 
         console.log("Focusing on split:  {" + this.theSplit + "}");
@@ -94,11 +87,15 @@ const focusSplitMgr = {
      */
     changeAttributeConfiguration: function () {
 
-        this.theSplit.leftLabel = $("#leftLabelText").val();
-        this.theSplit.rightLabel = $("#rightLabelText").val();
+        const leftLabelElement = document.getElementById("leftLabelText");
+        const rightLabelElement = document.getElementById("rightLabelText");
 
-        if (!this.theSplit.isCategorical) {
-            var tCut = Number($("#cutpointText").val());
+        this.theSplit.leftLabel = leftLabelElement.value;   //  ("#leftLabelText").val();
+        this.theSplit.rightLabel = rightLabelElement.value;
+
+        if (this.theSplit.isCategorical) {
+        } else {
+            const tCut = Number(document.getElementById("cutpointText").value);
             this.theSplit.oneBoolean = this.theSplit.setCutPoint(tCut, $("#operatorMenu").find('option:selected').val());
         }
 
@@ -120,42 +117,22 @@ const focusSplitMgr = {
         }
     },
 
-    /**
-     * Fix the text and sets of buttons, etc. to reflect the current attribute configuration.
-     */
-    displayAttributeConfiguration: function () {
-
-        if (this.theSplit) {
-
-            $("#currentSplitTypeMenu").val(this.theSplit.isCategorical ? "categorical" : "continuous");
-            $("#splitVariableName").text(this.theSplit.attName);
-            // $("#attributeConfigurationHeadline").text(this.theSplit.toString());
-            $("#attributeSummary").html(this.theSplit.toString());
-            $("#continuousAttributeName").text(this.theSplit.attName);
-            $("#continuousAttributeReverseExpression").text(this.theSplit.reverseContinuousExpression(false));
-            $("#cutpointText").val(this.theSplit.cutpoint);
-            $("#operatorMenu").val(this.theSplit.operator);
-
-            this.theSplit.constructCategoryButtons(this.leftCategoryZoneSelector, "L");
-            this.theSplit.constructCategoryButtons(this.rightCategoryZoneSelector, "R");
-
-            $("#leftLabelText").val(this.theSplit.leftLabel);
-            $("#rightLabelText").val(this.theSplit.rightLabel);
-
-            if (this.theSplit.attName === arbor.state.dependentVariableSplit.attName) {  //      aha! we're looking at the dependent!
-                $("#leftHeaderText").text('meaning of "positive"');
-                $("#rightHeaderText").text('meaning of "negative"');
-            } else {
-                $("#leftHeaderText").text('left branch');
-                $("#rightHeaderText").text('right branch');
-            }
-        }
-    },
 
     /**
      * Fix the text and sets of buttons, etc. to reflect the current attribute configuration.
      */
     displayAttributeConfiguration: function () {
+        const leftLabelElement = document.getElementById("leftLabelText");
+        const rightLabelElement = document.getElementById("rightLabelText");
+
+        const autoLabels = arbor.state.oAutoBranchLabels && !this.theSplit.isCategorical;
+
+        //  set visibility of relevant DOM elements in the configuration section
+
+        const el_cont = document.getElementById("continuousAttributeConfiguration");
+        const el_cate = document.getElementById("categoricalAttributeConfiguration");
+        el_cont.style.display = (this.theSplit.isCategorical) ? "none" : "table-row";
+        el_cate.style.display = (this.theSplit.isCategorical) ? "table-row" : "none";
 
         if (this.theSplit) {
 
@@ -171,8 +148,15 @@ const focusSplitMgr = {
             this.constructCategoryButtons("#leftCategoryButtons", "L");
             this.constructCategoryButtons("#rightCategoryButtons", "R");
 
+                /*
             $("#leftLabelText").val(this.theSplit.leftLabel);
             $("#rightLabelText").val(this.theSplit.rightLabel);
+*/
+            leftLabelElement.value = this.theSplit.leftLabel;
+            leftLabelElement.disabled = autoLabels;
+            rightLabelElement.value = this.theSplit.rightLabel;
+            rightLabelElement.disabled = autoLabels;
+
 
             if (this.theSplit.attName === arbor.state.dependentVariableSplit.attName) {  //      aha! we're looking at the dependent!
                 $("#leftHeaderText").text('meaning of "positive"');

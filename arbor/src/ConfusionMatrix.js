@@ -26,7 +26,7 @@ limitations under the License.
 
 */
 
-var ConfusionMatrix = function ( iDOMid) {
+const ConfusionMatrix = function ( iDOMid) {
     this.paper = Snap(document.getElementById( iDOMid ));
 
     this.TP = 20;
@@ -73,8 +73,8 @@ var ConfusionMatrix = function ( iDOMid) {
         FN: this.paper.text(this.firstColumnStart, this.secondRowStart, this.FN.toString())
     };
 
-    this.truthLabel = this.paper.text(50, 20, "actual");
-    this.diagnosisLabel = this.paper.text(20, 90, "diagnosis").transform("rotate(-90 20 90)");
+    this.truthLabel = this.paper.text(50, 20, "columns");
+    this.diagnosisLabel = this.paper.text(20, 90, "rows").transform("rotate(-90 20 90)");
 
     this.resize();
 };

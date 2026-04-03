@@ -60,14 +60,21 @@ const mosaic = {
             const cellData = allData.cellData;
             const marginalData = allData.marginalData;
 
+            /**
+             * Bind the data arrays to the various boxes and labels.
+             * remember, plotG is the <g> group in our plot area, defined in initialize.
+             */
             let predBoxes = this.plotG.selectAll(".predBox").data(cellData);
             let truthBoxes = this.plotG.selectAll(".truthBox").data(cellData);
-
             let marginalLabels = this.plotG.selectAll(".marginalLabelText").data(marginalData);
-
             let cellCountLabels = this.plotG.selectAll(".cellText").data(cellData);
 
 
+            /**
+             * There are 4 elements in the `predBoxes` array, one for TP, FP, etc.
+             * Each element is an object with keys x, y, w (width), h, count (the actual number) etc.
+             * Here we do the 4 rectangles; later, in cellCountLabels, we display the text (count)
+             */
             predBoxes.enter().append("rect")            //  prediction rect, fills everything
                 .attr("class", "predBox")
                 .style("stroke", "#fff")
@@ -141,6 +148,12 @@ const mosaic = {
 
             //  numbers for cell counts
 
+            /**
+             * Loops over the FOUR cells, displaying d.count as the text.
+             * Centers the number in the box.
+             *
+             * Note that we bound cellData to these text objects, class .cellText.
+             */
             cellCountLabels.enter().append("text")
                 .attr("class", "cellText")
                 .style("text-anchor", "middle")
@@ -241,7 +254,7 @@ const mosaic = {
                 y: 0.5,
                 w: N ? margTrue / N : 0,
                 h: margTrue ? (theCounts.TP + theCounts.FN) / margTrue : 0,
-                text: margTrue ? arbor.strings.mpsfActuallyLabel(mosaic.positiveLabel) : "",
+                text: margTrue ? localize.getString("mpsfActuallyLabel", mosaic.positiveLabel) : "",
                 rotation: 90,
                 baseline: "central",     //      "auto",
             };
@@ -251,7 +264,7 @@ const mosaic = {
                 y: 0.5,
                 w: N ? margFalse / N : 0,
                 h: margFalse ? (theCounts.FP + theCounts.TN) / margFalse : 0,
-                text: margFalse ? arbor.strings.mpsfActuallyLabel(mosaic.negativeLabel) : "",
+                text: margFalse ? localize.getString("mpsfActuallyLabel", mosaic.negativeLabel) : "",
                 rotation: 90,
                 baseline: "central",        //  "hanging",
             }
@@ -320,7 +333,7 @@ const mosaic = {
                 y: 0.05,
                 w: margPositive ? (theCounts.TP + theCounts.FP) / margPositive : 0,
                 h: N ? margPositive / N : 0,
-                text: margPositive ? arbor.strings.mpsfPredictedLabel(mosaic.positiveLabel) : "",
+                text: margPositive ? localize.getString("mpsfPredictedLabel", mosaic.positiveLabel) : "",
                 rotation: 0,
                 baseline: "central",    //      "auto",
             };
@@ -330,7 +343,7 @@ const mosaic = {
                 y: 0.95,
                 w: margNegative ? (theCounts.FN + theCounts.TN) / margNegative : 0,
                 h: N ? margNegative / N : 0,
-                text: margNegative ? arbor.strings.mpsfPredictedLabel(mosaic.negativeLabel) : "",
+                text: margNegative ? localize.getString("mpsfPredictedLabel", mosaic.negativeLabel)  : "",
                 rotation: 0,
                 baseline: "central",  //     "hanging",
             }
@@ -354,9 +367,13 @@ const mosaic = {
         document.getElementById("targetAttributeNameForMosaicLegend").innerHTML = arbor.state.dependentVariableName;
 
         document.getElementById("positiveMosaicLabel").innerHTML
-            = truthy ? arbor.strings.mpsfPredictedLabel(mosaic.positiveLabel) : arbor.strings.mpsfActuallyLabel(mosaic.positiveLabel);
+            = truthy ?
+            localize.getString("mpsfPredictedLabel", mosaic.positiveLabel)  :
+            localize.getString("mpsfActuallyLabel", mosaic.positiveLabel) ;
+
         document.getElementById("negativeMosaicLabel").innerHTML
-            = truthy ? arbor.strings.mpsfPredictedLabel(mosaic.negativeLabel) : arbor.strings.mpsfActuallyLabel(mosaic.negativeLabel);
+            = truthy ? localize.getString("mpsfPredictedLabel", mosaic.negativeLabel)  :
+            localize.getString("mpsfActuallyLabel", mosaic.negativeLabel) ;
 
         document.getElementById("positiveLegendRect")
             .style.fill = truthy ? arbor.constants.mosaicColorPredictedPositive : arbor.constants.mosaicColorActualPositive;

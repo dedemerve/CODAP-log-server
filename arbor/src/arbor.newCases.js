@@ -123,7 +123,7 @@ arbor.newCases = {
                                 theAnalysis += theTrace.terminalNodeSign === "+" ? "P" : "N";
                             }
 
-                            //  The update request!
+                            //  The updateBoxData request!
                             //  todo: fix so this doesn't depend on the collection name! (only the dataContext)
 
                             let tNewValues = {};
@@ -147,10 +147,10 @@ arbor.newCases = {
                 console.log("Results of the request for cases: " + tString);
 
                 if (tCompoundRequest.length > 0) {
-                    console.log("Sending a compound request to update " + tCompoundRequest.length + " cases");
+                    console.log("Sending a compound request to updateBoxData " + tCompoundRequest.length + " cases");
                     return codapInterface.sendRequest(tCompoundRequest);
                 } else {
-                    console.log("Not sending any requests to update these cases.");
+                    console.log("Not sending any requests to updateBoxData these cases.");
                 }
 
             };
@@ -182,7 +182,7 @@ arbor.newCases = {
                 .then(processAndChangeItemsWithDiagnosesAndPrepareUpdateRequest.bind(this))
                 .then(processResultOfUpdateRequests.bind(this))
                 .then( function() {
-                    console.log("\n***** refreshing data after successful update in Arbor *****")
+                    console.log("\n***** refreshing data after successful updateBoxData in Arbor *****")
                     arbor.refreshBaum("data");
                 });
         }

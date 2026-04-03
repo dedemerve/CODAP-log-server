@@ -1,14 +1,3 @@
-// ── Ogrenci ID URL parametresinden al ──
-(function() {
-    var params = new URLSearchParams(window.location.search);
-    var sid = params.get("studentId");
-    if (sid) sid = decodeURIComponent(sid);
-    window._arborStudentId = sid || "unknown";
-    window._arborSessionStart = Date.now();
-    console.log("[Arbor] Ogrenci:", window._arborStudentId);
-})();
-
-
 /**
  * Created by tim on 9/26/16.
 
@@ -77,10 +66,10 @@ const arbor = {
     dependentVariableSplit: null,       //  not the same as the focus split (focusSplitMgr.theSplit)
 
     iFrameDescription: {
-        version: '2025b',
+        version: '2025k',
         name: 'arbor',
         title: 'decision tree',
-        dimensions: {width: 500, height: 444},
+        dimensions: {width: 512, height: 444},
         preventDataContextReorg: false,
     },
 
@@ -92,9 +81,7 @@ const arbor = {
 
         await codapInterface.init(this.iFrameDescription, null);
 
-        // logger initialize kaldirildi
-
-
+        //  make sure the "split manager" is hidden
         focusSplitMgr.showHideAttributeConfigurationSection("hide");
 
         this.eventDispatcher = new EventDispatcher();
@@ -105,6 +92,7 @@ const arbor = {
         );
 
         //  register to receive notifications about selection in the tree result datasets
+        //  (classification tree dataset, regression tree dataset)
         codapInterface.on(
             'notify',
             'dataContextChangeNotice[' + arbor.constants.kClassTreeDataSetName + ']',
@@ -125,9 +113,8 @@ const arbor = {
             arbor.dropManager.handleDrop,
         );
 
-        arbor.state.lang = pluginLang.figureOutLanguage(arbor.constants.kDefaultLanguage, arborStrings.languages);
-        arbor.strings = await arborStrings.initializeStrings(this.state.lang);
-        mosaic.initialize();
+        arbor.state.lang = localize.figureOutLanguage(arbor.constants.kDefaultLanguage);
+        await localize.initialize(arbor.state.lang);
 
         await arbor.getAndRestoreModel();   //  includes getInteractiveState
 
@@ -135,10 +122,67 @@ const arbor = {
 
         await this.createOutputDatasets();
 
+        mosaic.initialize();
+        doubleTree.initialize();
+
         arbor.repopulate();
         arbor.redisplay();
     },
 
+    /**
+     * Creates the "analysis" which holds all the data contexts, etc.
+     * Then fills it.
+     *
+     */
+    getAndRestoreModel: async function () {
+        if (!this.analysis) {
+            this.analysis = new Analysis(arbor);     //  the global, arbor, is the "host" for the analysis
+        }
+
+        /* FIRST call to getInteractiveState, this is to restore any saved state */
+
+        //  const savedState = codapInterface.getInteractiveState();
+        this.state = codapInterface.getInteractiveState();
+        const freshState = arbor.freshState();
+
+/*
+        //if (jQuery.isEmptyObject(savedState)) {
+        if (jQuery.isEmptyObject(this.state)) {
+            codapInterface.updateInteractiveState(freshState);
+            console.log("getting a fresh state");
+        }
+*/
+
+        //  this.state = {...savedState, ...this.state};
+        this.state = {...freshState, ...this.state};    //  add in any new fields
+
+        codapInterface.updateInteractiveState(this.state);
+
+
+        if (arbor.state.dataSetName) {
+            await this.analysis.getStructureAndData();  //  load CODAP structure, then all cases. Know attributes!
+            arbor.assembleAttributeAndCategoryNames();   //  we have the cases, collect the value names
+            this.attsInBaum.forEach(function (a) {
+                a.latestSplit = new AttributeSplit(a);  //  set all default splits
+            });
+
+            arbor.doBaumRestoration(arbor.state);   //  restore the arbor data. Still all model.
+            arbor.repopulate();
+
+            //  register to receive notifications about selection in the data
+
+            codapInterface.on(
+                'notify',
+                'dataContextChangeNotice[' + arbor.state.dataSetName + ']',
+                'selectCases',
+                arbor.selectionManager.processCodapSelectionOfDataCase
+            );
+        }
+        await this.matchUItoState();
+
+        console.log("arbor.state is " + JSON.stringify(arbor.state).length + " chars");
+
+    },
     /**
      * Set the data context by name; if the name is the same as the current, do nothing.
      *
@@ -230,7 +274,7 @@ const arbor = {
 
         const tInitDatasetPromises = [
             pluginHelper.initDataSet(arbor.codapConnector.regressionTreesDatasetSetupObject()),
-            pluginHelper.initDataSet(arbor.codapConnector.classificationTreesDatasetSetupObject())
+            pluginHelper.initDataSet(arbor.codapConnector.getClassificationTreesDatasetSetupObject())
         ];
 
         await Promise.all(tInitDatasetPromises)
@@ -288,6 +332,8 @@ const arbor = {
      * depending on the current type of tree.
      */
     emitTreeData: function () {
+        console.log(`arbor.emitTreeData()`);
+
         const tRes = arbor.state.tree.rootNode.getResultCounts();
         const tSumSSD = tRes.sumOfSquaresOfDeviationsOfLeaves;
 
@@ -299,25 +345,29 @@ const arbor = {
 
         let tValues = {state: tStateAsString};
 
-        tValues[arbor.strings.sanPredict] = arbor.informalDVBoolean;    //  the informal expression of what is being predicted
-        tValues[arbor.strings.sanN] = N;
-        tValues[arbor.strings.sanBaseRate] = (tRes.TP + tRes.FN + tRes.PU) / N;
-        tValues[arbor.strings.sanNodes] = tNodes;
-        tValues[arbor.strings.sanDepth] = tDepth;
-        tValues[arbor.strings.staticStrings.focusAttributeNameBoxLabel] = document.getElementById(`focusAttributeNameBox`).value;
-        tValues[arbor.strings.staticStrings.focusAttributeValueBoxLabel] = document.getElementById(`focusAttributeValueBox`).innerText;
+        tValues[localize.getString("attributeNames.sanN")] = N;
+        tValues[localize.getString("attributeNames.sanBaseRate")] = (tRes.TP + tRes.FN + tRes.PU) / N;
+        tValues[localize.getString("attributeNames.sanNodes")] = tNodes;
+        tValues[localize.getString("attributeNames.sanDepth")] = tDepth;
+        tValues[localize.getString("staticStrings.focusAttributeNameBoxLabel")] = document.getElementById(`focusAttributeNameBox`).value;
+        tValues[localize.getString("staticStrings.focusAttributeValueBoxLabel")] = document.getElementById(`focusAttributeValueBox`).innerText;
 
         if (arbor.state.treeType === arbor.constants.kRegressTreeType) {
-            tValues[arbor.strings.sanSumSSD] = tSumSSD;
+            tValues[localize.getString("attributeNames.sanPredict")] = `${arbor.constants.kMu}(${arbor.state.dependentVariableName})`;    //  as in µ(height)
+            //  tValues[localize.getString("attributeNames.sanSumSSD")] = tSumSSD;
+            tValues[localize.getString("attributeNames.sanSSModel")] = tRes.SSModel;
+            tValues[localize.getString("attributeNames.sanSSTotal")] = tRes.SSTotal;
+            tValues[localize.getString("attributeNames.sanExplained")] = tRes.explainedPercentage;
             arbor.codapConnector.createRegressionTreeItem(tValues);
 
         } else {
-            tValues[arbor.strings.sanTP] = tRes.TP;
-            tValues[arbor.strings.sanTN] = tRes.TN;
-            tValues[arbor.strings.sanFP] = tRes.FP;
-            tValues[arbor.strings.sanFN] = tRes.FN;
-            tValues[arbor.strings.sanNPPos] = tRes.PU;
-            tValues[arbor.strings.sanNPNeg] = tRes.NU;
+            tValues[localize.getString("attributeNames.sanPredict")] = arbor.informalDVBoolean;    //  the informal expression of what is being predicted
+            tValues[localize.getString("attributeNames.sanTP")] = tRes.TP;
+            tValues[localize.getString("attributeNames.sanTN")] = tRes.TN;
+            tValues[localize.getString("attributeNames.sanFP")] = tRes.FP;
+            tValues[localize.getString("attributeNames.sanFN")] = tRes.FN;
+            tValues[localize.getString("attributeNames.sanNPPos")] = tRes.PU;
+            tValues[localize.getString("attributeNames.sanNPNeg")] = tRes.NU;
 
             arbor.codapConnector.createClassificationTreeItem(tValues);
         }
@@ -365,6 +415,8 @@ const arbor = {
             dependentVariableSplit: null,
             tree: null,
             mosaicOrientation : arbor.constants.kMosaicOrientationTruth,
+            doubleTreeModeIndex : 0,
+            doubleTreeMode : doubleTree.modes[0],
             oNodeDisplayProportion: arbor.constants.kUsePercentageInNodeBox,
             oNodeDisplayNumber: arbor.constants.kUseOutOfInNodeBox,
             oAlwaysShowConfigurationOnSplit: false,
@@ -374,51 +426,7 @@ const arbor = {
         }
     },
 
-    /**
-     * Creates the "analysis" which holds all the data contexts, etc.
-     * Then fills it.
-     *
-     */
-    getAndRestoreModel: async function () {
-        if (!this.analysis) {
-            this.analysis = new Analysis(arbor);     //  the global, arbor, is the "host" for the analysis
-        }
 
-        //  getStructureAndData used to be here
-
-        /* FIRST call to getInteractiveState, this is to restore any saved state */
-
-        arbor.state = codapInterface.getInteractiveState();
-
-        if (jQuery.isEmptyObject(arbor.state)) {
-            codapInterface.updateInteractiveState(arbor.freshState());
-            console.log("getting a fresh state");
-        }
-
-        if (arbor.state.dataSetName) {
-            await this.analysis.getStructureAndData();  //  load CODAP structure, then all cases. Know attributes!
-            arbor.assembleAttributeAndCategoryNames();   //  we have the cases, collect the value names
-            this.attsInBaum.forEach(function (a) {
-                a.latestSplit = new AttributeSplit(a);  //  set all defaults
-            });
-
-            arbor.doBaumRestoration(arbor.state);   //  restore the arbor data. Still all model.
-            arbor.repopulate();
-
-            //  register to receive notifications about selection in the data
-
-            codapInterface.on(
-                'notify',
-                'dataContextChangeNotice[' + arbor.state.dataSetName + ']',
-                'selectCases',
-                arbor.selectionManager.processCodapSelectionOfDataCase
-            );
-        }
-        await this.matchUItoState();
-
-        console.log("arbor.state is " + JSON.stringify(arbor.state).length + " chars");
-
-    },
 
     /**
      * Set various controls in the UI to match the `arbor.state` values.
@@ -427,7 +435,7 @@ const arbor = {
      * @returns {Promise<void>}
      */
     matchUItoState: async function () {
-        arbor.strings = await arborStrings.initializeStrings(arbor.state.lang);
+        await localize.initialize(arbor.state.lang);
 
         //  now set the options
         switch (arbor.state.oNodeDisplayNumber) {
@@ -479,9 +487,6 @@ const arbor = {
             this.state.latestNodeID = 42;
         }
 
-        //  tree type
-
-        this.setTreeTypeByString(iState.treeType);
 
         //  tree (after node numbering so the root node gets a good number)
 
@@ -490,6 +495,10 @@ const arbor = {
         } else {
             this.state.tree = new Tree();
         }
+
+        //  tree type
+
+        this.setTreeTypeByString(iState.treeType);
 
         //  dependent variable
 
@@ -570,16 +579,17 @@ const arbor = {
 
 
     /**
-     * Something has changed, like in the attribute configuration.
-     * We need to repopulate the tree WITHOUT reconstructing it,
-     * That is, we believe that the allocation of attributes to nodes should be preserved.
+     *  Something has changed, like in the attribute configuration.
+     *  We need to repopulate the tree WITHOUT reconstructing it,
+     *  That is, we believe that the allocation of attributes to nodes should be preserved.
+     *  Called by `initialize()`, `getAndRestoreModel()`, and `handleTreeChange()`
      */
     repopulate: function () {
         if (arbor.state.tree) {
             console.log("   repopulate the model! Begin...");
             this.state.tree.populateTree();               //  count up how many are in what bin throughout the tree, leaving structure intact
             console.log("       ... populated with " + this.analysis.cases.length + " cases");
-            focusSplitMgr.theSplit.updateSplitStats(this.analysis.cases);    //  update these stats based on all cases
+            focusSplitMgr.theSplit.updateSplitStats(this.analysis.cases);    //  updateBoxData these stats based on all cases
             console.log("       ... splitStats updated");
             console.log("   repopulate ends");
         } else {
@@ -588,26 +598,44 @@ const arbor = {
     },
 
     redisplay: function () {
-        console.log(`Redisplay (in arbor.js, ${arbor.strings.staticStrings.changeLanguageButton}) ------------------------`);
+
+        //      because almost any change results in a redisplay, always the state here
+        codapInterface.updateInteractiveState(this.state);
+
+        console.log(`Redisplay (in arbor.js, ${localize.getString("staticStrings.changeLanguageButton")}) ------------------------`);
+
+        this.setPluginTitle();
 
         const tableTab = document.getElementById("tableTab");
+        const mosaicTab = document.getElementById("mosaicTab");
+        const doubleTab = document.getElementById("doubleTab");
         const treePaper = document.getElementById("treePaper");
         const noTreePaper  = document.getElementById("noTreeArea");
         const outputControls = document.getElementById("outputFileControls");
 
+        document.getElementById("changeLanguageButton").innerHTML = localize.getString("staticStrings.changeLanguageButton");
+
+        const isRegression = arbor.state.treeType === arbor.constants.kRegressTreeType;
+
         if (arbor.state.dataSetName) {
             outputControls.style.display = "flex";
-            tableTab.style.display = "block";
+            tableTab.style.display = isRegression ? "none" : "block";
+            mosaicTab.style.display = isRegression ? "none" : "block";
+            doubleTab.style.display = isRegression ? "none" : "block";
             treePaper.style.display = "block";
             noTreePaper.style.display = "none";
+
             this.fixDependentVariableMechanisms();  //  sets appropriate label text
             focusSplitMgr.displayAttributeConfiguration();   //  the (hidden) HTML on the main page
             this.treePanelView = new TreePanelView();  //  the main view.
             arbor.ui.updateAlternativeVisualizations();
+
         } else {
             outputControls.style.display = "none";
             treePaper.style.display = "none";
             tableTab.style.display = "none";
+            mosaicTab.style.display = "none";
+            doubleTab.style.display = "none";
             noTreePaper.style.display = "flex";
 
         }
@@ -617,12 +645,21 @@ const arbor = {
         return window.innerWidth - 44;
     },
 
-    setDependentVariableByName: function (iAttName) {
+    /**
+     * In response to a drop
+     *
+     * @param iAttName
+     * @returns {Promise<*>}
+     */
+    setDependentVariableByName: async function (iAttName) {
 
         //  which attribute (attInBaum) corresponds to this name?
         const theAttribute = this.attsInBaum.reduce(function (acc, val) {
             return ((iAttName === val.attributeName) ? val : acc);
         });
+
+        console.log(`Setting dependent variable: [${theAttribute}]`)
+
 
         return this.setDependentVariableByAttInBaum(theAttribute);
     },
@@ -639,8 +676,13 @@ const arbor = {
         this.state.dependentVariableSplit = theAttribute.getSplit();  //  makes a default
         focusSplitMgr.setFocusSplit(this.state.dependentVariableSplit);
 
-        return theAttribute;    //  in case we need one.
+        if (this.state.dependentVariableSplit.isCategorical) {
+            this.setTreeTypeByString(arbor.constants.kClassTreeType)
+        } else {
+            this.setTreeTypeByString(arbor.constants.kRegressTreeType)
+        }
 
+        return theAttribute;    //  in case we need one.
     },
 
     /**
@@ -705,13 +747,16 @@ const arbor = {
     fixDependentVariableMechanisms: function () {
         this.dependentVariableBoolean = this.state.dependentVariableSplit.oneBoolean;
 
-        this.informalDVBoolean = this.state.dependentVariableSplit.attName + ` ${arbor.strings.sfIsAre(1)} ` +
+        this.informalDVBoolean = this.state.dependentVariableSplit.attName + ` ${localize.getString("sIs")} ` +
             this.state.dependentVariableSplit.leftLabel;
 
-        this.informalDVBooleanReversed = this.state.dependentVariableSplit.attName +` ${arbor.strings.sfIsAre(1)} ` +
+        this.informalDVBooleanReversed = this.state.dependentVariableSplit.attName +` ${localize.getString("sIs")} ` +
             this.state.dependentVariableSplit.rightLabel;
 
-        this.state.tree.rootNode.valueInLabel = "predicting " + this.informalDVBoolean;
+        this.state.tree.rootNode.valueInLabel = (this.state.treeType === this.constants.kClassTreeType) ?
+            `${localize.getString("sPredicting")}  ${this.informalDVBoolean}` :
+            `${localize.getString("sPredicting")} µ(${this.state.dependentVariableSplit.attName})`;
+
         //  console.log("fixDependentVariableMechanisms: " + this.informalDVBoolean);
     },
 
@@ -792,8 +837,8 @@ const arbor = {
 
 
     changeLanguage: async function () {
-        arbor.state.lang = arborStrings.nextLanguage(arbor.state.lang);
-        arbor.strings = await arborStrings.initializeStrings(arbor.state.lang);
+        arbor.state.lang = localize.nextLanguage(arbor.state.lang);
+        await localize.initialize(arbor.state.lang);
 
         await this.setPluginTitle();
         await this.deleteBothOutputDatasets();  //  because they have different attribute names
@@ -804,8 +849,8 @@ const arbor = {
 
     setPluginTitle: async function() {
         const theTitle = (arbor.state.treeType === arbor.constants.kRegressTreeType) ?
-            arbor.strings.sRegressionTreeTitle :
-            arbor.strings.sClassificationTreeTitle;
+            localize.getString("sRegressionTreeTitle") :
+            localize.getString("sClassificationTreeTitle");
         const mess = {
             action : "update",
             resource : "interactiveFrame",
@@ -816,18 +861,29 @@ const arbor = {
         const changeResult = await codapInterface.sendRequest(mess);
     },
 
-    changeTreeTypeUsingMenu: function () {
-        const tType = $("#treeTypeMenu").find('option:selected').val();
+    setTreeTypeUsingMenu: function () {
+        const tType = document.getElementById("treeTypeMenu").value
         this.setTreeTypeByString(tType);
+/*
         this.setPluginTitle();
-        this.redisplay();
+
+        let tEvent = new Event("changeTree");
+        tEvent.why = "set tree type";
+        arbor.dispatchTreeEvent(tEvent);   //  results in a redraw of the tree VIEW.
+        console.log("    ** dispatch " + JSON.stringify(tEvent));
+*/
     },
 
     setTreeTypeByString: function (iType) {
         if (this.state.treeType !== iType) {
             this.state.treeType = iType;
-            $("#treeTypeMenu").val(this.state.treeType);
+            document.getElementById("treeTypeMenu").value = (this.state.treeType);
             console.log("Changing tree type to " + this.state.treeType);
+
+            let tEvent = new Event("changeTree");
+            tEvent.why = "set tree type";
+            arbor.dispatchTreeEvent(tEvent);   //  results in a redraw of the tree VIEW.
+            console.log("    ** dispatch " + JSON.stringify(tEvent));
         }
     },
 
@@ -859,6 +915,7 @@ const arbor = {
     /**
      * Update the display of the number of TP, etc., below the tree.
      * These results come from `arbor.state.tree.results`, i.e., in `ArborTree`
+     *
      * called from the TreePanelView
      * @param iData
      */
@@ -868,15 +925,15 @@ const arbor = {
         let tHTMLout = "Classification or regression summary";
 
         if (iData.sampleSize === 0) {
-            tHTMLout = arbor.strings.sNoCasesToProcess;
+            tHTMLout = localize.getString("sNoCasesToProcess");
         } else {
             if (arbor.state.treeType === arbor.constants.kClassTreeType) {
                 //  classification tree
-                tHTMLout = arbor.strings.sfClassificationSummary(iData);
+                tHTMLout = arbor.ui.classificationSummary(iData);
 
             } else {
                 //  regression tree
-                tHTMLout = `${arbor.constants.kSigma}(${arbor.strings.sSSD}) = ${iData.sumOfSquaresOfDeviationsOfLeaves.toFixed(3)}`;
+                tHTMLout = arbor.ui.regressionSummary(iData);
             }
         }
 

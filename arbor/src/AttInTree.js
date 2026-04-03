@@ -140,7 +140,7 @@ AttInBaum.prototype.toString = function() {
             categoryList = this.categories.length + " categories";
         }
 
-    var out = "<b>" + this.attributeName + "</b> (" + categoryList + ")";
+    var out = `${this.attributeName} (${categoryList})`;
 
     if (this.minimum < Number.POSITIVE_INFINITY) {
         out += " range [" + this.minimum + " to " + this.maximum + "] ";

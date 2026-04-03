@@ -32,15 +32,20 @@ limitations under the License.
  */
 arbor.ui = {
 
-    updateConfusionMatrix : function(tRes, kPositive, kNegative) {
-        document.getElementById("table-head").innerHTML = arbor.strings.sfConfusionCaseCount(tRes);
+    updateConfusionMatrix: function (tRes, kPositive, kNegative) {
+        const confusionCaseCountDisplay = `<span class='confusionHed'> ${arbor.state.dependentVariableName}</span><br> ${tRes.sampleSize} ${localize.getString("cases")}`;
 
-        document.getElementById("truth-positive-head").innerHTML = `${kPositive} (${tRes.TP + tRes.FN + tRes.PU})`;
-        document.getElementById("truth-negative-head").innerHTML = `${kNegative} (${tRes.FP + tRes.TN + tRes.NU})`;
-        document.getElementById("pred-positive-head").innerHTML = `${kPositive} (${tRes.TP + tRes.FP})`;
-        document.getElementById("pred-negative-head").innerHTML = `${kNegative} (${tRes.TN + tRes.FN})`;
+        document.getElementById("tableHead").innerHTML = confusionCaseCountDisplay;
 
-        document.getElementById("noPredictionTableHead").innerHTML = `${arbor.strings.sNoPrediction} (${tRes.PU + tRes.NU})`;
+        document.getElementById("truthHead").innerHTML = localize.getString("staticStrings.truthHead");
+        document.getElementById("predHead").innerHTML = localize.getString("staticStrings.predHead");
+
+        document.getElementById("truthPositiveHead").innerHTML = `${kPositive} (${tRes.TP + tRes.FN + tRes.PU})`;
+        document.getElementById("truthNegativeHead").innerHTML = `${kNegative} (${tRes.FP + tRes.TN + tRes.NU})`;
+        document.getElementById("predPositiveHead").innerHTML = `${kPositive} (${tRes.TP + tRes.FP})`;
+        document.getElementById("predNegativeHead").innerHTML = `${kNegative} (${tRes.TN + tRes.FN})`;
+
+        document.getElementById("noPredictionTableHead").innerHTML = `${localize.getString("sNoPrediction")} (${tRes.PU + tRes.NU})`;
 
         document.getElementById("TP").innerHTML = tRes.TP;
         document.getElementById("FP").innerHTML = tRes.FP;
@@ -51,15 +56,70 @@ arbor.ui = {
 
     },
 
-
-    updateAlternativeVisualizations : function () {
+    updateAlternativeVisualizations: function () {
         const tRes = arbor.state.tree.rootNode.getResultCounts();
         const kPositive = arbor.state.dependentVariableSplit.leftLabel;
         const kNegative = arbor.state.dependentVariableSplit.rightLabel;
 
         this.updateConfusionMatrix(tRes, kPositive, kNegative);
         mosaic.update(tRes);
+        doubleTree.updateDataInDisplay(tRes);
+    },
+
+    regressionSummary: function (iData) {
+        const sigma = arbor.constants.kSigma;
+        const accounted = (100 * (1 - iData.sumOfSquaresOfDeviationsOfLeaves)).toFixed(3);
+        const SSModelLabel = localize.getString("attributeNames.sanSSModel");
+        const SSTotalLabel = localize.getString("attributeNames.sanSSTotal");
+
+        //  toda: format values using say 3 sigfigs, not fixed!
+        let out = `
+        <div class = "correct resultsPill noselect">${SSModelLabel} = ${iData.SSModel.newFixed(3)}</div>
+        <div class = "correct resultsPill noselect">${SSTotalLabel} = ${iData.SSTotal.newFixed(3)}</div>
+        <div class = "correct resultsPill noselect">${localize.getString("sExplainedPercentage", iData.explainedPercentage)}</div>
+        `
+
+        out += `
+            <div class="filler"></div>
+            <img src="art/emit.png" width="24" height="16" 
+                    class="imageButton"
+                    id="emitDataButton" onclick="arbor.emitTreeData()" 
+                    title = "${localize.getString('staticStrings.emitDataButton')}"/>
+            `
+        return out;
+
+    },
+
+    classificationSummary: function (iRes) {
+
+        const TPlabel = `${localize.getString("attributeNames.sanTP")} = ${iRes.TP}`;
+        const TNlabel = `${localize.getString("attributeNames.sanTN")} = ${iRes.TN}`;
+        const FPlabel = `${localize.getString("attributeNames.sanFP")} = ${iRes.FP}`;
+        const FNlabel = `${localize.getString("attributeNames.sanFN")} = ${iRes.FN}`;
+
+        let out = `
+            <div class="correct resultsPill noselect" title="${localize.getString("sTrue")} ${localize.getString("sPositive")}">${TPlabel}</div>
+            <div class="correct resultsPill noselect" title="${localize.getString("sTrue")} ${localize.getString("sNegative")}">${TNlabel}</div>
+            <div class="incorrect resultsPill noselect" title="${localize.getString("sFalse")} ${localize.getString("sPositive")}">${FPlabel}</div>
+            <div class="incorrect resultsPill noselect" title="${localize.getString("sFalse")} ${localize.getString("sNegative")}">${FNlabel}</div>
+            
+        </div>
+            `;
+
+        if (iRes.undiagDenominator) {
+            out += `<div class="no-pred resultsPill noselect">
+                        ${localize.getString("sNoPrediction")} = ${iRes.PU + iRes.NU}</div>`
+        }
+
+        out += `
+            <div class="filler"></div>
+            <img src="art/emit.png" width="24" height="16" 
+                    class="imageButton"
+                    id="emitDataButton" onclick="arbor.emitTreeData()" 
+                    title = "${localize.getString('staticStrings.emitDataButton')}"/>
+            `
+        return out;
+    },
 
 
-    }
 };

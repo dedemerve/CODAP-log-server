@@ -72,14 +72,14 @@ arbor.codapConnector = {
      * Object needed by codapHelper to initialize a dataset
      * @type {{name: string, title: string, description: string, collections: [null]}}
      */
-    classificationTreesDatasetSetupObject : function() {
+    getClassificationTreesDatasetSetupObject : function() {
         return {
             name: arbor.constants.kClassTreeDataSetName,
-            title : arbor.strings.sClassTreeDataSetTitle,
-            description : arbor.strings.sClassTreeDataSetDescription,
+            title : localize.getString("sClassTreeDataSetTitle"),
+            description : localize.getString("sClassTreeDataSetDescription"),
             collections: [  // first, simple: one collection
                 {
-                    name: arbor.strings.sClassTreeCollectionName,
+                    name: localize.getString("sClassTreeCollectionName"),
                     labels: {
                         singleCase: "tree",
                         pluralCase: "trees",
@@ -88,54 +88,107 @@ arbor.codapConnector = {
                     // The (child) collection specification:
                     attrs: [
                         {   //  what we are predicting, e.g., MI = yes
-                            name : arbor.strings.sanPredict,
-                            title: arbor.strings.sanPredict,
+                            name : localize.getString("attributeNames.sanPredict"),
+                            title: localize.getString("attributeNames.sanPredict"),
                             type: 'categorical',
-                            description: arbor.strings.sadPredict
+                            description: localize.getString("attributeDescriptions.sadPredict")
                         },
                         {   //  name of the focus attribute
-                            name : arbor.strings.staticStrings.focusAttributeNameBoxLabel,
-                            title: arbor.strings.staticStrings.focusAttributeNameBoxLabel,
-                            type: 'categorical', description : arbor.strings.sadFocusAttributeName
+                            name : localize.getString("staticStrings.focusAttributeNameBoxLabel"),
+                            title: localize.getString("staticStrings.focusAttributeNameBoxLabel"),
+                            type: 'categorical',
+                            description : localize.getString("attributeDescriptions.sadFocusAttributeName")
                         },
                         {   //  value of the focus attribute
-                            name : arbor.strings.staticStrings.focusAttributeValueBoxLabel,
-                            title: arbor.strings.staticStrings.focusAttributeValueBoxLabel,
-                            type: 'numeric', description : arbor.strings.sadFocusAttributeValue
+                            name : localize.getString("staticStrings.focusAttributeValueBoxLabel"),
+                            title: localize.getString("staticStrings.focusAttributeValueBoxLabel"),
+                            type: 'numeric',
+                            description : localize.getString("attributeDescriptions.sadFocusAttributeValue")
                         },
 
                         //  misclassification rate; note that this has a formula
-                        {name : arbor.strings.sanMisclassificationRate, title: arbor.strings.sanMisclassificationRate, type: 'numeric', precision: 3, editable : true,
-                            description : arbor.strings.sadMisclassificationRate,
-                            formula : `(${arbor.strings.sanN} - ${arbor.strings.sanTP} - ${arbor.strings.sanTN})/${arbor.strings.sanN}`
+                        {
+                            name : localize.getString("attributeNames.sanMisclassificationRate"),
+                            title: localize.getString("attributeNames.sanMisclassificationRate"),
+                            type: 'numeric', precision: 3, editable : true,
+                            description : localize.getString("attributeDescriptions.sadMisclassificationRate"),
+                            formula : `(${localize.getString("attributeNames.sanN")} - ${localize.getString("attributeNames.sanTP")} - ${localize.getString("attributeNames.sanTN")})/${localize.getString("attributeNames.sanN")}`
                         },
                         //  sensitivity
-                        {name : arbor.strings.sanSensitivity, title: arbor.strings.sanSensitivity, type: 'numeric', precision: 3, editable : true,
-                            description : arbor.strings.sadSensitivity,
-                            formula : ` ${arbor.strings.sanTP}/( ${arbor.strings.sanTP} +  ${arbor.strings.sanFN} +  ${arbor.strings.sanNPPos})`
+                        {
+                            name : localize.getString("attributeNames.sanSensitivity"),
+                            title: localize.getString("attributeNames.sanSensitivity"),
+                            type: 'numeric', precision: 3, editable : true,
+                            description : localize.getString("attributeDescriptions.sadSensitivity"),
+                            formula : ` ${localize.getString("attributeNames.sanTP")}/( ${localize.getString("attributeNames.sanTP")} +  ${localize.getString("attributeNames.sanFN")} +  ${localize.getString("attributeNames.sanNPPos")})`
                         },
 
                         //  the four base stats!
-                        {name : arbor.strings.sanTP, title: arbor.strings.sanTP, type: 'numeric', precision: 0, description : arbor.strings.sadTP},
-                        {name : arbor.strings.sanFN, title: arbor.strings.sanFN, type: 'numeric', precision: 0, description : arbor.strings.sadFN},
-                        {name : arbor.strings.sanFP, title: arbor.strings.sanFP, type: 'numeric', precision: 0, description : arbor.strings.sadFP},
-                        {name : arbor.strings.sanTN, title: arbor.strings.sanTN, type: 'numeric', precision: 0, description : arbor.strings.sadTN},
+                        {
+                            name : localize.getString("attributeNames.sanTP"),
+                            title: localize.getString("attributeNames.sanTP"), type: 'numeric', precision: 0,
+                            description : localize.getString("attributeDescriptions.sadTP")
+                        },
+                        {
+                            name : localize.getString("attributeNames.sanFN"),
+                            title: localize.getString("attributeNames.sanFN"), type: 'numeric', precision: 0,
+                            description : localize.getString("attributeDescriptions.sadFN")
+                        },
+                        {
+                            name : localize.getString("attributeNames.sanFP"),
+                            title: localize.getString("attributeNames.sanFP"), type: 'numeric', precision: 0,
+                            description : localize.getString("attributeDescriptions.sadFP")
+                        },
+                        {
+                            name : localize.getString("attributeNames.sanTN"),
+                            title: localize.getString("attributeNames.sanTN"), type: 'numeric', precision: 0,
+                            description : localize.getString("attributeDescriptions.sadTN")
+                        },
+
                         //  two extras for no prediction
-                        {name : arbor.strings.sanNPPos, title: arbor.strings.sanNPPos, type: 'numeric', precision: 0, description : arbor.strings.sadNPPos},
-                        {name : arbor.strings.sanNPNeg, title: arbor.strings.sanNPNeg, type: 'numeric', precision: 0, description : arbor.strings.sadNPNeg},
+
+                        {
+                            name : localize.getString("attributeNames.sanNPPos"),
+                            title: localize.getString("attributeNames.sanNPPos"), type: 'numeric', precision: 0,
+                            description : localize.getString("attributeDescriptions.sadNPPos")
+                        },
+                        {
+                            name : localize.getString("attributeNames.sanNPNeg"),
+                            title: localize.getString("attributeNames.sanNPNeg"), type: 'numeric', precision: 0,
+                            description : localize.getString("attributeDescriptions.sadNPNeg")
+                        },
 
                         //  N, the number of cases
-                        {name : arbor.strings.sanN, title: arbor.strings.sanN, type: 'numeric', precision : 0, description : arbor.strings.sadN},
-                        {name : arbor.strings.sanBaseRate, title: arbor.strings.sanBaseRate, title : "base rate", type: 'numeric', precision: 3, description : arbor.strings.sadBaseRate},
+
+                        {
+                            name : localize.getString("attributeNames.sanN"),
+                            title: localize.getString("attributeNames.sanN"), type: 'numeric', precision : 0,
+                            description : localize.getString("attributeDescriptions.sadN")
+                        },
+                        {
+                            name : localize.getString("attributeNames.sanBaseRate"),
+                            title: localize.getString("attributeNames.sanBaseRate"), type: 'numeric', precision: 3,
+                            description : localize.getString("attributeDescriptions.sadBaseRate")
+                        },
 
 
                         //  number of nodes
-                        {name : arbor.strings.sanNodes, title: arbor.strings.sanNodes, type: 'numeric', precision : 0, description : arbor.strings.sadNodes},
+                        {
+                            name : localize.getString("attributeNames.sanNodes"),
+                            title: localize.getString("attributeNames.sanNodes"), type: 'numeric', precision : 0,
+                            description : localize.getString("attributeDescriptions.sadNodes")
+                        },
+
                         //  depth of the tree
-                        {name : arbor.strings.sanDepth, title: arbor.strings.sanDepth, type: 'numeric', precision : 0, description : arbor.strings.sadDepth},
+                        {
+                            name : localize.getString("attributeNames.sanDepth"),
+                            title: localize.getString("attributeNames.sanDepth"), type: 'numeric', precision : 0,
+                            description : localize.getString("attributeDescriptions.sadDepth")
+                        },
 
                         //  hidden the tree state! This is what lets the plugin reconstitute the tree on selection
-                        {name : `state`, title: "state", type: 'categorical', description: "save state for this tree", editable : true, hidden: true}
+                        {
+                            name : `state`, title: "state", type: 'categorical', description: "save state for this tree", editable : true, hidden: true}
                     ]
                 }
             ]   //  end of collections
@@ -146,11 +199,11 @@ arbor.codapConnector = {
     regressionTreesDatasetSetupObject : function() {
         return {
             name: arbor.constants.kRegressTreeDataSetName,
-            title: arbor.strings.sRegressTreeDataSetTitle,
-            description : arbor.strings.sRegressTreeDataSetDescription,
+            title: localize.getString("sRegressTreeDataSetTitle"),
+            description : localize.getString("sRegressTreeDataSetDescription"),
             collections: [
                 {
-                    name: arbor.strings.sRegressTreeCollectionName,
+                    name: localize.getString("sRegressTreeCollectionName"),
                     labels: {
                         singleCase: "tree",
                         pluralCase: "trees",
@@ -158,14 +211,52 @@ arbor.codapConnector = {
                     },
 
                     attrs: [
-                        {name : arbor.strings.sanPredict, title: arbor.strings.sanPredict, type: 'categorical', description: 'what are we predicting?'},
-                        {name : arbor.strings.sanN, title: arbor.strings.sanN, type: 'numeric', precision : 0, description : 'total number of cases'},
-                        {name : arbor.strings.sanNodes, title: arbor.strings.sanNodes, type: 'numeric', precision : 0, description : 'total number of nodes'},
-                        {name : arbor.strings.sanDepth, title: arbor.strings.sanDepth, type: 'numeric', precision : 0, description : 'depth of tree'},
+                        {
+                            name : localize.getString("attributeNames.sanPredict"),
+                            title: localize.getString("attributeNames.sanPredict"), type: 'categorical',
+                            description: localize.getString("attributeDescriptions.sadPredict")
+                        },
+                        {
+                            name : localize.getString("attributeNames.sanSSModel"),
+                            title: localize.getString("attributeNames.sanSSModel"), type: 'numeric', precision: 3,
+                            description : localize.getString("attributeDescriptions.sadSSModel")
+                        },
+                        {
+                            name : localize.getString("attributeNames.sanSSTotal"),
+                            title: localize.getString("attributeNames.sanSSTotal"), type: 'numeric', precision: 3,
+                            description : localize.getString("attributeDescriptions.sadSSTotal")
+                        },
+                        {
+                            name : localize.getString("attributeNames.sanExplained"),
+                            title: localize.getString("attributeNames.sanExplained"), type: 'numeric', precision: 3,
+                            description : localize.getString("attributeDescriptions.sadExplained")
+                        },
+/*
+                        {
+                            name : localize.getString("attributeNames.sanSumSSD"),
+                            title: localize.getString("attributeNames.sanSumSSD"), type: 'numeric', precision: 3,
+                            description : localize.getString("attributeDescriptions.sadSumSSD")
+                        },
+*/
+                        {
+                            name : localize.getString("attributeNames.sanN"),
+                            title: localize.getString("attributeNames.sanN"), type: 'numeric', precision : 0,
+                            description : localize.getString("attributeDescriptions.sadN")
+                        },
+                        {
+                            name : localize.getString("attributeNames.sanNodes"),
+                            title: localize.getString("attributeNames.sanNodes"), type: 'numeric', precision : 0,
+                            description : localize.getString("attributeDescriptions.sadNodes")
+                        },
+                        {
+                            name: localize.getString("attributeNames.sanDepth"),
+                            title: localize.getString("attributeNames.sanDepth"), type: 'numeric', precision: 0,
+                            description: localize.getString("attributeDescriptions.sadDepth")
+                        },
 
-                        {name : arbor.strings.sanSumSSD, title: arbor.strings.sanSumSSD, type: 'numeric', precision: 3, description : 'total (normalized) sum of the sum of squares of deviation'},
-
-                        {name : `state`, title: "state", type: 'categorical', description: "save state for this tree", editable : true, hidden: true}
+                        {
+                            name : `state`, title: "state", type: 'categorical', description: "save state for this tree", editable : true, hidden: true
+                        }
                     ]
                 }
             ]   //  end of collections
