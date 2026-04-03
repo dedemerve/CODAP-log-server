@@ -7,20 +7,20 @@
 <style>
   body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0f4f8;font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
   .box{background:#fff;border-radius:16px;padding:48px 40px;width:340px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.12);}
-  h1{margin:0 0 8px;font-size:24px;color:#1a1a2e;}
-  p{margin:0 0 24px;font-size:15px;color:#666;}
-  input{width:100%;box-sizing:border-box;padding:12px 14px;font-size:16px;border:2px solid #dde;border-radius:10px;outline:none;margin-bottom:16px;}
+  h1{margin:0 0 8px;font-size:26px;color:#1a1a2e;}
+  p{margin:0 0 24px;font-size:17px;color:#666;}
+  input{width:100%;box-sizing:border-box;padding:12px 14px;font-size:18px;border:2px solid #dde;border-radius:10px;outline:none;margin-bottom:16px;}
   input:focus{border-color:#4a6fa5;}
-  button{width:100%;padding:13px;font-size:16px;font-weight:700;color:#fff;background:#4a6fa5;border:none;border-radius:10px;cursor:pointer;}
+  button{width:100%;padding:13px;font-size:18px;font-weight:700;color:#fff;background:#4a6fa5;border:none;border-radius:10px;cursor:pointer;}
   button:hover{background:#3a5a8f;}
-  .err{color:#c0392b;font-size:13px;margin-top:8px;min-height:18px;}
+  .err{color:#c0392b;font-size:14px;margin-top:8px;min-height:18px;}
 </style>
 </head>
 <body>
 <div class="box">
   <h1>CODAP Arbor</h1>
   <p>Sınıflandırma ve Regresyon Ağacı</p>
-  <input id="name" type="text" placeholder="Adınızı ve soyadınızı yazın." autocomplete="off" maxlength="80"/>
+  <input id="name" type="text" placeholder="Adınızı ve soyadınızı yazın" autocomplete="off" maxlength="80"/>
   <button onclick="start()">Devam Et</button>
   <div class="err" id="err"></div>
 </div>
