@@ -382,9 +382,7 @@ const arbor = {
         });
         const tSumSSD = tRes.sumOfSquaresOfDeviationsOfLeaves;
 
-        const N = tRes.sampleSize;        //  tRes.FP + tRes.TP + tRes.FN + tRes.TN;
-        const tNodes = arbor.state.tree.numberOfNodes();
-        const tDepth = arbor.state.tree.depth();
+        const N = tN;
 
         const tStateAsString = JSON.stringify(arbor.state);
 
