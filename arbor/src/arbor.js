@@ -113,6 +113,22 @@ const arbor = {
             arbor.dropManager.handleDrop,
         );
 
+        // ── CODAP Bildirim Logları ──
+        codapInterface.on('notify', 'documentChangeNotice', function(msg) {
+            if (window.arborSendLog) arborSendLog('codap_document_change', {
+                operation: msg.values ? msg.values.operation : '',
+                deleted_context: msg.values ? msg.values.deletedContext : ''
+            });
+        });
+
+        codapInterface.on('notify', 'component', function(msg) {
+            if (window.arborSendLog) arborSendLog('codap_component_change', {
+                operation: msg.values ? msg.values.operation : '',
+                type: msg.values ? msg.values.type : '',
+                id: msg.values ? msg.values.id : ''
+            });
+        });
+
         arbor.state.lang = localize.figureOutLanguage(arbor.constants.kDefaultLanguage);
         await localize.initialize(arbor.state.lang);
 
@@ -210,6 +226,10 @@ const arbor = {
     },
 
     handleDataContextChange: function(iCommand) {
+        if (window.arborSendLog) arborSendLog('data_context_change', {
+            operation: iCommand.values ? iCommand.values.operation : '',
+            result: iCommand.values ? JSON.stringify(iCommand.values.result).slice(0,200) : ''
+        });
 
         switch(iCommand.values.operation) {
             case `createCases`:
