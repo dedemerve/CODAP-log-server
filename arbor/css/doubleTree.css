@@ -1,0 +1,36 @@
+
+/* doubletree   */
+
+
+#theDoubleTree {
+    background-color: white;
+    padding: 0;
+    margin: 0;
+}
+
+.dtValue {
+    font-weight: bold;
+    font-size: 1.5em;
+    text-anchor: middle;
+}
+
+.dtLabel {
+    font-size: 1.0em;
+    text-anchor: middle;
+}
+
+.connectingLine {
+    stroke-width: 6;
+    stroke : gray;
+}
+
+.dashedLine {
+    stroke-width: 2;
+    stroke : goldenrod;
+    stroke-dasharray: 4;
+}
+
+.tagText {
+    font-size : 8pt;
+    text-anchor: middle;
+}

@@ -138,6 +138,13 @@ pre {
     border-radius: 4px;
 }
 
+.imageButton {
+    vertical-align: center;
+    cursor: pointer;
+    padding-left : 4px;
+}
+
+
 .focusatt {
     padding : 0.5em;
 }
@@ -225,6 +232,7 @@ This is the <div> that appears at the beginning, when there is no tree.
     margin : 4px;
     border-radius: 4px;
     background-color: #dcb;
+
 }
 
 /*  Special stuff   */
@@ -233,7 +241,7 @@ This is the <div> that appears at the beginning, when there is no tree.
     padding-left: 8px;
     cursor: pointer;
 }
-
+x
 .noselect {
     cursor: default;
     -webkit-touch-callout: none;
@@ -268,9 +276,7 @@ This is the <div> that appears at the beginning, when there is no tree.
 
 #resultsDisplay {
     padding : 0.5em;
-    /*
-    font-family: 'JetBrains Mono', monospace;
-    */
+    align-items: center;
 }
 
 .resultsPill {
@@ -323,4 +329,9 @@ th, td {
 
 th {
     text-align: center;
+}
+
+
+.filler {
+    flex-grow: 1;
 }
