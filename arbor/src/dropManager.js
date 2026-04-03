@@ -15,11 +15,13 @@ arbor.dropManager = {
         switch (iMessage.values.operation) {
             case "dragstart":
                 console.log(`... start dragging ${iMessage.values.attribute.title}`);
+                if (window.arborSendLog) arborSendLog("dragstart", {attribute: iMessage.values.attribute.name, attribute_id: iMessage.values.attribute.id});
                 //scrambler.currentlyDraggingAnAttribute = true;
                 this.currentlyDraggingCODAPAttribute = true;
                 break;
             case "dragend":
                 console.log(`...  stop dragging ${iMessage.values.attribute.title}`);
+                if (window.arborSendLog) arborSendLog("dragend", {attribute: iMessage.values.attribute.name});
                 arbor.dropManager.highlightDropZones(false);
                 this.currentlyDraggingCODAPAttribute = false;
                 break;
@@ -53,10 +55,12 @@ arbor.dropManager = {
                 break;
 
             case "dragenter":
+                if (window.arborSendLog) arborSendLog("dragenter", {attribute: iMessage.values.attribute ? iMessage.values.attribute.name : ""});
                 arbor.dropManager.highlightDropZones(true);
                 break;
 
             case "dragleave":
+                if (window.arborSendLog) arborSendLog("dragleave", {attribute: iMessage.values.attribute ? iMessage.values.attribute.name : ""});
                 arbor.dropManager.highlightDropZones(false);
                 break;
 

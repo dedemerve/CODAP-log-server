@@ -305,6 +305,7 @@ const arbor = {
      * @param iWhat
      */
     refreshBaum: function (iWhat) {
+        if (window.arborSendLog) arborSendLog('refresh_tree', {type: iWhat});
         switch (iWhat) {
             case 'all':
                 codapInterface.updateInteractiveState(arbor.state);
@@ -333,6 +334,7 @@ const arbor = {
      */
     emitTreeData: function () {
         console.log(`arbor.emitTreeData()`);
+        if (window.arborSendLog) arborSendLog('emit_tree_data', {tree_type: arbor.state.treeType, dependent_variable: arbor.state.dependentVariableName, dataset: arbor.state.dataSetName});
 
         const tRes = arbor.state.tree.rootNode.getResultCounts();
         const tSumSSD = tRes.sumOfSquaresOfDeviationsOfLeaves;
@@ -671,7 +673,8 @@ const arbor = {
      */
     setDependentVariableByAttInBaum: function (theAttribute) {
         //  make a new split
-        this.state.dependentVariableName = theAttribute.attributeName;    //  for saving
+        this.state.dependentVariableName = theAttribute.attributeName;
+        if (window.arborSendLog) arborSendLog('set_dependent_variable', {attribute: theAttribute.attributeName});    //  for saving
 
         this.state.dependentVariableSplit = theAttribute.getSplit();  //  makes a default
         focusSplitMgr.setFocusSplit(this.state.dependentVariableSplit);
@@ -702,6 +705,7 @@ const arbor = {
      * @param iNode
      */
     setFocusNode: function (iNode) {
+        if (window.arborSendLog && iNode) arborSendLog('set_focus_node', {node_id: iNode.nodeID || '', attribute: iNode.attributeSplit ? iNode.attributeSplit.attName : ''});
         this.focusNode = iNode;
 
         if (this.focusNode) {
@@ -837,6 +841,7 @@ const arbor = {
 
 
     changeLanguage: async function () {
+        if (window.arborSendLog) arborSendLog('change_language', {old_lang: arbor.state.lang});
         arbor.state.lang = localize.nextLanguage(arbor.state.lang);
         await localize.initialize(arbor.state.lang);
 
@@ -877,6 +882,7 @@ const arbor = {
     setTreeTypeByString: function (iType) {
         if (this.state.treeType !== iType) {
             this.state.treeType = iType;
+            if (window.arborSendLog) arborSendLog('change_tree_type', {tree_type: iType});
             document.getElementById("treeTypeMenu").value = (this.state.treeType);
             console.log("Changing tree type to " + this.state.treeType);
 

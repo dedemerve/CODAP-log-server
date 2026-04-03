@@ -57,6 +57,7 @@ const focusSplitMgr = {
      */
 
     changeFocusSplitValues: function () {
+        if (window.arborSendLog) arborSendLog("change_split_values", {split: focusSplitMgr.theSplit ? focusSplitMgr.theSplit.attName : ""});
         const tName = this.theSplit.attName;
 
         //  tell the attribute to remember this particular split as its default.
@@ -194,6 +195,7 @@ const focusSplitMgr = {
      * Change the left-right sense of the definition and the labels.
      */
     swapFocusSplit: function () {
+        if (window.arborSendLog) arborSendLog("swap_focus_split", {split: focusSplitMgr.theSplit ? focusSplitMgr.theSplit.attName : ""});
         this.theSplit.swapLandR();
         this.changeFocusSplitValues();
     },
