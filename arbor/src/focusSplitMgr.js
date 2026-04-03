@@ -57,13 +57,23 @@ const focusSplitMgr = {
      */
 
     changeFocusSplitValues: function () {
-        if (window.arborSendLog) arborSendLog("change_split_values", {split: focusSplitMgr.theSplit ? focusSplitMgr.theSplit.attName : ""});
         const tName = this.theSplit.attName;
+        const oldCutpoint = this.theSplit.cutpoint;
+        const oldCategories = this.theSplit.isCategorical ? (this.theSplit.leftCategories || []).join(",") : null;
 
         //  tell the attribute to remember this particular split as its default.
 
         const tAtt = arbor.getAttributeByName(tName);
         tAtt.saveSplit(this.theSplit);
+        if (window.arborSendLog) arborSendLog('change_split_values', {
+            attribute: tName,
+            is_categorical: this.theSplit.isCategorical,
+            old_value: oldCutpoint,
+            new_value: this.theSplit.cutpoint,
+            old_categories: oldCategories,
+            new_categories: this.theSplit.isCategorical ? (this.theSplit.leftCategories || []).join(',') : null,
+            operator: this.theSplit.operator || ''
+        });
 
         //  force a redraw
 

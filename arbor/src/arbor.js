@@ -325,7 +325,13 @@ const arbor = {
      * @param iWhat
      */
     refreshBaum: function (iWhat) {
-        if (window.arborSendLog) arborSendLog('refresh_tree', {type: iWhat});
+        if (window.arborSendLog) {
+            if (iWhat === 'all') {
+                arborSendLog('reset_tree', {type: iWhat, dependent_variable: arbor.state ? arbor.state.dependentVariableName : '', dataset: arbor.state ? arbor.state.dataSetName : ''});
+            } else {
+                arborSendLog('refresh_tree', {type: iWhat});
+            }
+        }
         switch (iWhat) {
             case 'all':
                 codapInterface.updateInteractiveState(arbor.state);
@@ -354,9 +360,26 @@ const arbor = {
      */
     emitTreeData: function () {
         console.log(`arbor.emitTreeData()`);
-        if (window.arborSendLog) arborSendLog('emit_tree_data', {tree_type: arbor.state.treeType, dependent_variable: arbor.state.dependentVariableName, dataset: arbor.state.dataSetName});
-
         const tRes = arbor.state.tree.rootNode.getResultCounts();
+        const tNodes = arbor.state.tree.numberOfNodes();
+        const tDepth = arbor.state.tree.depth();
+        const tN = tRes.sampleSize;
+        if (window.arborSendLog) arborSendLog('emit_tree_data', {
+            tree_type: arbor.state.treeType,
+            dependent_variable: arbor.state.dependentVariableName,
+            dataset: arbor.state.dataSetName,
+            TP: tRes.TP || 0,
+            TN: tRes.TN || 0,
+            FP: tRes.FP || 0,
+            FN: tRes.FN || 0,
+            node_count: tNodes,
+            depth: tDepth,
+            sample_size: tN,
+            accuracy: tN > 0 ? Math.round(((tRes.TP||0) + (tRes.TN||0)) / tN * 1000) / 1000 : 0,
+            ss_model: tRes.SSModel || 0,
+            ss_total: tRes.SSTotal || 0,
+            explained: tRes.explainedPercentage || 0
+        });
         const tSumSSD = tRes.sumOfSquaresOfDeviationsOfLeaves;
 
         const N = tRes.sampleSize;        //  tRes.FP + tRes.TP + tRes.FN + tRes.TN;
